@@ -1,17 +1,23 @@
 import chessnet.engineInfo
+import chessnet.uci.Uci
+import chessnet.Board
 
-fun main() {
+fun main(args: Array<String>) {
+    val argc = args.size
     println(engineInfo())
 
-    // get version from build.gradle.kts
 
-    /*
-    Uci.init(Options)
+    // Initialize UCI with options
+    Uci.init("")
+
+    // Create Board
+    Board.init()
 
 
 
-    Uci.loop(argc,argv)
-*/
+
+    Uci.loop(argc, args)
+
 
 }
 
