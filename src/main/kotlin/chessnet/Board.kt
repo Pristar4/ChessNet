@@ -1,6 +1,6 @@
 package chessnet
 
-import chessnet.types.GenerateMoves
+import chessnet.types.generateMoves
 
 object Board {
     val boardSize = 64
@@ -8,7 +8,8 @@ object Board {
 
     var ColorToMove = 0
     fun init() {
-        print(GenerateMoves())
+        print(generateMoves())
+
     }
 
     fun pretty() {

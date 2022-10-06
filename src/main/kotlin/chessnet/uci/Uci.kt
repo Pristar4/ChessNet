@@ -7,9 +7,11 @@ object Uci {
     const val StartFEN =
         "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
+    const val testFEN = "k7/8/8/8/4r3/8/8/4K3 w - - 0 1"
+
     fun init(options: Any) {
         println("uciok")
-        Position.set(StartFEN)
+        position(testFEN)
         return
     }
 
