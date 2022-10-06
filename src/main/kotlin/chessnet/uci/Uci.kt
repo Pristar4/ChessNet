@@ -1,18 +1,25 @@
 package chessnet.uci
 
-class Uci {
-    companion object {
+import chessnet.position.Position
 
+object Uci {
 
-        fun init(options: Any) {
-            //TODO: implement Uci.init()
-            return
-        }
+    const val StartFEN =
+        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
-        fun loop(argc: Int, argv: Array<String>) {
-            //TODO: implement Uci.loop()
-            return
-        }
+    fun init(options: Any) {
+        println("uciok")
+        Position.set(StartFEN)
+        return
     }
 
+    fun loop(argc: Int, argv: Array<String>) {
+        // TODO: implement Uci.loop()
+        return
+    }
+
+    fun position(fen: String) {
+        Position.set(fen)
+        return
+    }
 }
