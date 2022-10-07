@@ -20,6 +20,7 @@ class Uci {
             var token = ""
             var cmd = ""
 
+
             for (arg in argv) cmd += "$arg "
             do {
                 // Wait for an input or an end-of-file
