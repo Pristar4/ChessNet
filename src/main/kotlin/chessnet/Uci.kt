@@ -1,24 +1,31 @@
-package chessnet.uci
+package chessnet
 
-import chessnet.engineInfo
 import java.util.*
-import java.util.concurrent.TimeUnit
 
 class Uci {
+
     fun init() {
         TODO()
     }
 
-    companion object {
+     companion object {
+        const val StartFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
         fun go(pos: Int, scanner: Scanner, states: List<String>) {
             println("bestmove e2e4")
         }
 
         fun loop(argv: Array<String>) {
-            var scanner = Scanner(System.`in`)
-            var argc = argv.size
+
+            val pos:Position = Position()
+
+            val scanner = Scanner(System.`in`)
+            val argc = argv.size
             var token = ""
             var cmd = ""
+            var states: StateInfo = StateInfo()
+
+            pos.set(StartFEN, false, states)
+
 
 
             for (arg in argv) cmd += "$arg "
@@ -30,7 +37,6 @@ class Uci {
                     "quit"
                 }
                 // Avoid a stale if getline() returns nothing or1 a blank line
-                token = ""
 
                 val token = cmd.split(" ").first()
 
