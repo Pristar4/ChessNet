@@ -40,10 +40,26 @@ enum class CastlingRights(val value: Int) {
 
 }
 
-enum class PieceType(val i: Int = 0) {
-    NO_PIECE_TYPE, PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING,
-    ALL_PIECES(0),
-    PIECE_TYPE_NB(8);
+enum class Value(val value: Int) {
+    VALUE_ZERO(0),
+    VALUE_DRAW(0),
+    VALUE_KNOWN_WIN(10000),
+    VALUE_MATE(32000),
+    VALUE_INFINITE(32001),
+    VALUE_NONE(32002),
+
+//    VALUE_TB_WIN_IN_MAX_PLY
+}
+enum class PieceType(val char: Char, val i: Int = 0) {
+    NO_PIECE_TYPE('-'),
+    PAWN('p'),
+    KNIGHT('n'),
+    BISHOP('b'),
+    ROOK('r'),
+    QUEEN('q'),
+    KING('k'),
+    ALL_PIECES('?',0),
+    PIECE_TYPE_NB('#', 8);
 
     val value: Int
 
@@ -56,19 +72,28 @@ enum class PieceType(val i: Int = 0) {
     }
 }
 
-enum class Piece(val i: Int = 0) {
-    NO_PIECE, W_PAWN(PieceType.PAWN.value), W_KNIGHT, W_BISHOP, W_ROOK, W_QUEEN, W_KING,
-    B_PAWN(PieceType.PAWN.value+8), B_KNIGHT, B_BISHOP, B_ROOK, B_QUEEN, B_KING,
-    PIECE_NB(16);
-    private  var _value: Int = i
-    init {
-        if (i == -1) {
-            _value = ordinal
-        }
-    }
-    //getter
-    public val value: Int
-        get() = _value
+
+//NO_PIECE,
+//  W_PAWN = PAWN,     W_KNIGHT, W_BISHOP, W_ROOK, W_QUEEN, W_KING,
+//  B_PAWN = PAWN + 8, B_KNIGHT, B_BISHOP, B_ROOK, B_QUEEN, B_KING,
+//  PIECE_NB = 16
+enum class EPiece(val char: Char) {
+    NO_PIECE(' '),
+    W_PAWN(  'P'),
+    W_KNIGHT('N'),
+    W_BISHOP('B'),
+    W_ROOK(  'R'),
+    W_QUEEN( 'Q'),
+    W_KING(  'K'),
+    B_PAWN(  'p'),
+    B_KNIGHT('n'),
+    B_BISHOP('b'),
+    B_ROOK(  'r'),
+    B_QUEEN( 'q'),
+    B_KING(  'k');
+//TODO remove vincent sagt ist nur in c und c++ relevant
+//    PIECE_NB('?', 16);
+
     companion object {
         fun getPiece(char: Char): EPiece {
             return EPiece.values().find { ePiece -> ePiece.char == char } ?: NO_PIECE
@@ -97,15 +122,6 @@ enum class Square(i: Int = -1) {
     SQUARE_ZERO(0),
     SQUARE_NB(64);
 
-    private  var _value: Int = i
-    init {
-        if (i == -1) {
-            _value = ordinal
-        }
-    }
-    //getter
-    public val value: Int
-        get() = _value
 
     companion object {
         fun getSquare(coord: Coord): Square {

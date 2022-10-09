@@ -13,7 +13,7 @@ class Bitboards {
 
 
         fun print(b: Bitboard) {
-            // val b = SquareBB[0]
+//             val b = SquareBB[0]
             println("Bitboard: $b")
             //print 8*8 board
             for (i in 0..63) {
