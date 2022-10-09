@@ -20,7 +20,7 @@ enum class MoveType(val value: Int) {
 enum class Color(val value: Int) {
     WHITE(0),
     BLACK(1),
-    COLOR_NB(2)
+    NONE_NB(2)
 }
 
 enum class CastlingRights(val value: Int) {
@@ -45,19 +45,15 @@ enum class PieceType(val i: Int = 0) {
     ALL_PIECES(0),
     PIECE_TYPE_NB(8);
 
-    private  var _value: Int = i
+    val value: Int
+
     init {
-        if (i == -1) {
-            _value = ordinal
-        }
+        value = if (i == -1) ordinal else i
     }
-    //getter
-    public val value: Int
-        get() = _value
 
-
-
-
+    override fun toString(): String {
+        return char.toString();
+    }
 }
 
 enum class Piece(val i: Int = 0) {
@@ -74,17 +70,21 @@ enum class Piece(val i: Int = 0) {
     public val value: Int
         get() = _value
     companion object {
-        fun getPiece(idx: ULong): Any {
-
-            return Piece.values()[idx.toInt()]
+        fun getPiece(char: Char): EPiece {
+            return EPiece.values().find { ePiece -> ePiece.char == char } ?: NO_PIECE
         }
     }
 
+    override fun toString(): String {
+        return char.toString();
+    }
 }
 
+data class Coord (val x: Int, val y: Int)
+
+val BOARD_SIZE: Int = 8
+
 enum class Square(i: Int = -1) {
-
-
     SQ_A1, SQ_B1, SQ_C1, SQ_D1, SQ_E1, SQ_F1, SQ_G1, SQ_H1,
     SQ_A2, SQ_B2, SQ_C2, SQ_D2, SQ_E2, SQ_F2, SQ_G2, SQ_H2,
     SQ_A3, SQ_B3, SQ_C3, SQ_D3, SQ_E3, SQ_F3, SQ_G3, SQ_H3,
@@ -93,8 +93,7 @@ enum class Square(i: Int = -1) {
     SQ_A6, SQ_B6, SQ_C6, SQ_D6, SQ_E6, SQ_F6, SQ_G6, SQ_H6,
     SQ_A7, SQ_B7, SQ_C7, SQ_D7, SQ_E7, SQ_F7, SQ_G7, SQ_H7,
     SQ_A8, SQ_B8, SQ_C8, SQ_D8, SQ_E8, SQ_F8, SQ_G8, SQ_H8,
-
-     SQ_NONE(),
+    SQ_NONE(-2),
     SQUARE_ZERO(0),
     SQUARE_NB(64);
 
@@ -109,11 +108,34 @@ enum class Square(i: Int = -1) {
         get() = _value
 
     companion object {
-        fun getSquare(index: Int): Square {
-            return values()[index]
+        fun getSquare(coord: Coord): Square {
+            return squareArray[coord.x][coord.y]
+        }
+
+        val squareArray: Array<Array<Square>> = Array(BOARD_SIZE) {
+            y -> Array(BOARD_SIZE) {
+                x -> values().find {
+                    square -> square.coordinate == Coord(x,y)
+                } ?: SQ_NONE
+            }
+        }
+
+        fun A (row: Int): Square {
+            return squareArray[0][row];
         }
     }
 
+    val coordinate: Coord
+    val value: Int
+
+    init {
+        value = if (i == -1) ordinal else i
+
+        coordinate = if (i == -1)
+            Coord(ordinal % BOARD_SIZE, ordinal / BOARD_SIZE)
+        else
+            Coord(-1, -1)
+    }
 }
 
 enum class Direction(val value: Int) {
@@ -128,48 +150,36 @@ enum class Direction(val value: Int) {
     NORTH_WEST(NORTH.value + WEST.value)
 }
 
-enum class File(val i: Int) {
-    FILE_A(0),
-    FILE_B(1),
-    FILE_C(2),
-    FILE_D(3),
-    FILE_E(4),
-    FILE_F(5),
-    FILE_G(6),
-    FILE_H(7),
-    FILE_NB(8);
+enum class File(val char: Char) {
+    FILE_A('A'),
+    FILE_B('B'),
+    FILE_C('C'),
+    FILE_D('D'),
+    FILE_E('E'),
+    FILE_F('F'),
+    FILE_G('G'),
+    FILE_H('H'),
+    FILE_NB('?');
 
-    private  var _value: Int = i
-    init {
-        if (i == -1) {
-            _value = ordinal
-        }
+    override fun toString(): String {
+        return char.toString()
     }
-    //getter
-    public val value: Int
-        get() = _value
 }
 
-enum class Rank(val i: Int) {
-    RANK_1(0),
-    RANK_2(1),
-    RANK_3(2),
-    RANK_4(3),
-    RANK_5(4),
-    RANK_6(5),
-    RANK_7(6),
-    RANK_8(7),
-    RANK_NB(8);
+enum class Rank(val char: Char) {
+    RANK_1('1'),
+    RANK_2('2'),
+    RANK_3('3'),
+    RANK_4('4'),
+    RANK_5('5'),
+    RANK_6('6'),
+    RANK_7('7'),
+    RANK_8('8'),
+    RANK_NB('?');
 
-    private  var _value: Int = i
-    init {
-        if (i == -1) {
-            _value = ordinal
-        }
+    override fun toString(): String {
+        return char.toString()
     }
-    //getter
-    public val value: Int
-        get() = _value
 }
 
 

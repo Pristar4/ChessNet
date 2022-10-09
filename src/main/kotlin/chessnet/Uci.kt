@@ -22,8 +22,7 @@ class Uci {
             val argc = argv.size
             var token = ""
             var cmd = ""
-            var states: StateInfo = StateInfo()
-
+            var states: StateInfo =  StateInfo()// Drop the old state and create a new one
             pos.set(StartFEN, false, states)
 
 

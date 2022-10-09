@@ -19,12 +19,8 @@ class Bitboards {
             for (i in 0..63) {
                 if (i % 8 == 0) println()
                 if (b and (1UL shl i) != 0UL) print("1") else print("0")
-
             }
-
         }
-
-
     }
 }
 
