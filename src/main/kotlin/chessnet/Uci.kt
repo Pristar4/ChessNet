@@ -22,12 +22,8 @@ class Uci {
             var token: String = ""
             var fen: String
 
-         /*   if (!scanner.hasNext()) {
-                token = scanner.next()
-            }*/
             token = scanner.next()
             println("token: $token")
-
 
             if (token == "startpos") {
                 fen = StartFEN
@@ -63,13 +59,14 @@ class Uci {
 
         fun loop(argv: Array<String>) {
 
-            val pos:Position = Position()
+            val pos: Position = Position()
 
             val scanner = Scanner(System.`in`)
             val argc = argv.size
             var token = ""
             var cmd = ""
-            var states: StateInfo =  StateInfo()// Drop the old state and create a new one
+            var states: StateInfo =
+                StateInfo()// Drop the old state and create a new one
             pos.set(StartFEN, false, states)
 
 
@@ -79,15 +76,27 @@ class Uci {
 
             for (arg in argv) cmd += "$arg "
             do {
-                // Wait for an input or an end-of-file
-                cmd = if (scanner.hasNextLine()) {
-                    scanner.nextLine()
-                } else {
-                    "quit"
+                if (argc == 0 && !scanner.hasNextLine()) {
+                    cmd = "quit"
                 }
+
+                if (scanner.hasNextLine()) {
+                    scanner.useDelimiter(" ")
+                    cmd = scanner.nextLine()
+                    val ss = Scanner(cmd)
+                } else {
+
+                    cmd = "quit"
+                }
+                val ss = Scanner(cmd)
+
+                if (ss.hasNext())token = ss.next()
+
+                println("token: $token")
+
+
                 // Avoid a stale if getline() returns nothing or1 a blank line
 
-                val token = cmd.split(" ").first()
 
                 if (token == "quit" || token == "stop") //TODO : Stop Threads
                 else if (token == "uci") {
@@ -95,9 +104,9 @@ class Uci {
                 } else if (token == "go") {
                     var pos = 0
                     var states = listOf<String>()
-                    go(pos, scanner, states)
+                    go(pos, ss, states)
                 } else if (token == "position") {
-                    position(pos, scanner, listOf<String>())
+                    position(pos, ss, listOf<String>())
                 } else if (token == "ucinewgame") {
                     //Search::clear(); // After a new game our old search is not valid
                 } //Search.clear()
@@ -117,7 +126,7 @@ class Uci {
                 }
 
 
-            } while (token != "quit" || argc == 0) //The command-line arguments are one-shot
+            } while (token != "quit" && argc == 0) //FIXME: The command-line arguments  should be one-shot
 
 
         }
