@@ -1,6 +1,7 @@
 package chessnet
 
-import chessnet.Color.*
+import chessnet.Color.Companion.BLACK
+import chessnet.Color.Companion.WHITE
 import chessnet.PieceType.*
 
 class Board {

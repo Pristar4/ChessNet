@@ -5,3 +5,5 @@ D
 .circleci/config.yml,f\d\fd5da61396a8376845bee5cdf71aaf3c98a888ae
 W
 'src/main/kotlin/chessnet/Engine_Info.kt,b\8\b8aaec1774363027647b9512d3afba2b3b6e68ef
+G
+src/main/kotlin/Main.kt,d\8\d83ae3847b7d408136086cc5e9e95f5f7c126ed5

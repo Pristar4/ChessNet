@@ -17,10 +17,17 @@ enum class MoveType(val value: Int) {
     CASTLING(3 shl 14)
 }
 
-enum class Color(val value: Int) {
+enum class _Color(val value: Int) {
     WHITE(0),
     BLACK(1),
     NONE_NB(2)
+}
+data class Color (val value: Int) {
+    companion object {
+        val WHITE = Color(0)
+        val BLACK = Color(1)
+        val COLOR_NB = Color(2)
+    }
 }
 
 enum class CastlingRights(val value: Int) {
@@ -74,7 +81,7 @@ enum class PieceType(val char: Char, val i: Int = 0) {
 //  W_PAWN = PAWN,     W_KNIGHT, W_BISHOP, W_ROOK, W_QUEEN, W_KING,
 //  B_PAWN = PAWN + 8, B_KNIGHT, B_BISHOP, B_ROOK, B_QUEEN, B_KING,
 //  PIECE_NB = 16
-enum class Piece(val i: Int = 0) {
+enum class Piece(val value: Int = 0) {
     NO_PIECE(0),
     W_PAWN( 1),
     W_KNIGHT(2),
@@ -87,9 +94,9 @@ enum class Piece(val i: Int = 0) {
     B_BISHOP(11),
     B_ROOK(  12),
     B_QUEEN( 13),
-    B_KING(14);
+    B_KING(14),
 //TODO remove vincent sagt ist nur in c und c++ relevant
-//    PIECE_NB('?', 16);
+    PIECE_NB( 16);
 
     companion object {
         fun getPiece(char: Char): Piece {
@@ -106,6 +113,24 @@ enum class Piece(val i: Int = 0) {
                 'r' -> B_ROOK
                 'q' -> B_QUEEN
                 'k' -> B_KING
+                else -> NO_PIECE
+            }
+        }
+
+        fun getPiece(i:Int):Piece{
+            return when(i){
+                1 -> W_PAWN
+                2 -> W_KNIGHT
+                3 -> W_BISHOP
+                4 -> W_ROOK
+                5 -> W_QUEEN
+                6 -> W_KING
+                9 -> B_PAWN
+                10 -> B_KNIGHT
+                11 -> B_BISHOP
+                12 -> B_ROOK
+                13 -> B_QUEEN
+                14 -> B_KING
                 else -> NO_PIECE
             }
         }
@@ -148,17 +173,18 @@ enum class Square(i: Int = -1) {
     SQUARE_NB(64);
 
 
+
+
     companion object {
         fun getSquare(coord: Coord): Square {
             return squareArray[coord.x][coord.y]
         }
 
         val squareArray: Array<Array<Square>> = Array(BOARD_SIZE) {
-            y -> Array(BOARD_SIZE) {
-                x -> values().find {
-                    square -> square.coordinate == Coord(x,y)
-                } ?: SQ_NONE
+            Array(BOARD_SIZE) {
+                Square.SQ_NONE
             }
+
         }
 
         fun A (row: Int): Square {
@@ -191,6 +217,10 @@ enum class Direction(val value: Int) {
     NORTH_WEST(NORTH.value + WEST.value)
 }
 
+
+fun isOk(s: Square): Boolean {
+    return s >= Square.SQ_A1 && s <= Square.SQ_H8;
+}
 enum class File(val char: Char) {
     FILE_A('A'),
     FILE_B('B'),
@@ -224,8 +254,18 @@ enum class Rank(val char: Char) {
 }
 
 
-fun makePiece(color: Color, pieceType: PieceType): Piece {
-    return Piece.values().find {
-        piece -> piece.ordinal == (color.ordinal * 6) + pieceType.ordinal + 1
-    } ?: Piece.NO_PIECE
+fun makePiece(c: Color, pt: PieceType): Piece {
+    // a white pawn should be 1
+    // a black pawn should be 9
+    //bit shift left 3 times
+    return Piece.getPiece((c.value shl 3) + pt.value)
+
+
 }
+fun relativeSquare(color: Color, square: Square): Square {
+    return Square.getSquare(Coord(
+        square.coordinate.x,
+        if (color == Color.WHITE) square.coordinate.y else 7 - square.coordinate.y
+    ))
+}
+
