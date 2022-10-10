@@ -14,9 +14,7 @@ class Uci {
 
 
         private fun position(
-            pos: Position,
-            scanner: Scanner,
-            states: ArrayDeque<StateInfo>
+            pos: Position, scanner: Scanner, states: ArrayDeque<StateInfo>
         ) {
             var m: Move
             var token: String = ""
@@ -29,7 +27,6 @@ class Uci {
 
             if (token == "startpos") {
                 fen = StartFEN
-                println("startfen")
                 if (scanner.hasNext()) {
                     scanner.reset() // Consume the "moves" token, if any
                 }
@@ -37,7 +34,6 @@ class Uci {
 
             } else if (token == "fen") {
                 fen = ""
-                println("FEN: WORKING")
                 while (scanner.hasNext()) {
                     token = scanner.next()
                     if (token == "moves") break
@@ -99,6 +95,8 @@ class Uci {
 
                     cmd = "quit"
                 }
+                // Avoid a stale if getline() returns nothing or1 a blank line
+                token = ""
                 val ss = Scanner(cmd)
 
                 if (ss.hasNext()) token = ss.next()
@@ -106,7 +104,6 @@ class Uci {
                 println("token: $token")
 
 
-                // Avoid a stale if getline() returns nothing or1 a blank line
 
 
                 if (token == "quit" || token == "stop") //TODO : Stop Threads
@@ -125,12 +122,7 @@ class Uci {
                     println("readyok")
                 } else if (token == "--help" || token == "help" || token == "-license") {
                     print(
-                        "\n Chessnet is a uci chess engine written in Kotlin." +
-                                "\nIt is based on the Stockfish chess engine." +
-                                "\nIt is free and open source software distributed under the" +
-                                "\nGNU General Public License version 3." +
-                                "\nFor more information visit https://github.com/Pristar4/Chessnet" +
-                                "\nor read the README file.\n"
+                        "\n Chessnet is a uci chess engine written in Kotlin." + "\nIt is based on the Stockfish chess engine." + "\nIt is free and open source software distributed under the" + "\nGNU General Public License version 3." + "\nFor more information visit https://github.com/Pristar4/Chessnet" + "\nor read the README file.\n"
                     )
                 } else if (token.isNotEmpty() && token[0] != '#') {
                     println("Unknown command: $token")

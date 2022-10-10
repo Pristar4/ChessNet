@@ -22,6 +22,7 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.0")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
     //google test
 //    testImplementation("com.google.truth:truth:1.1.3")
 }

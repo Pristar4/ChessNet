@@ -90,47 +90,24 @@ class Position {
                 col += token.toString()
                     .toInt() // Advance the given number of files
 
-                print(token)
             } else if (token == '/') {
                 row++
                 col = 0
-                print(token)
 
             } else if (Piece.getPiece(token) != NO_PIECE) {
 
                 sq = makeSquare(File.values()[col], Rank.values()[row])
-                //println("sq = $sq col = $col row = $row token = $token idx = $idx")
                 putPiece(Piece.getPiece(token), sq)
-                print(token)
                 col++
-            }/*      token = 'A'
-            println("startToken: $token")
-        while ((ss.hasNext()) && !token.isWhitespace()) {
-            println("token: $token")
-            token = ss.next().first()
-            println("token: $token")
-
-            //check if token is whitespace
-
-
-            // if token is a digit, skip the corresponding number of files
-
-
-            //Advance the given number of files
-
-
-        */
+            }
         }
 
 
         // 2. Active color
         token = ss.next().single()  // Consume " "
-        print(token)
         token = ss.next().single() // Consume "w" or "b"
-        print(token)
         sideToMove = if (token == 'w') Color.WHITE else Color.BLACK
         token = ss.next().single() // Consume "w" or "b"
-        print(token)
 
         /* 3. Castling availability. Compatible with 3 standards: Normal FEN standard,
          Shredder-FEN that uses the letters of the columns on which the rooks began
@@ -142,7 +119,6 @@ class Position {
             val c: Color = if (token.isLowerCase()) Color.BLACK else Color.WHITE
             var rook: Piece = makePiece(c, PieceType.ROOK)
             token = ss.next().single().uppercaseChar()
-            print(token)
 
             //FIXME: Castling availability is broken
             /*
@@ -175,7 +151,6 @@ class Position {
         ss.useDelimiter("\\s+")
         st.rule50 = gamePly
         //TODO: check if rule50 number is correct
-        print(" ${st.rule50}")
 
         /*
          * Convert from fullmove starting from 1 to gamePly starting from 0,
@@ -188,7 +163,6 @@ class Position {
             0
         ) + gamePlyRight
         //TODO: check if this gamePly number is correct
-        print(" ${gamePlyRight}")
 
         chess960 = isChess960
         thisThread = Thread.currentThread()
@@ -197,34 +171,9 @@ class Position {
 
         assert(posIsOk())
 
-//        return *this
         return this
 
-        /*println(board.map { ePiece -> ePiece.char.toString() }.reduce { acc, char ->
-                        if (char != " ") acc + char; else {
-                            if (acc.last().isDigit() && acc.last().code != 8) {
-                                val count: Int = acc.last().code + 1
-                                var temp = acc.slice(0..acc.length - 2)
-                                temp + count.toString()
-                            } else {
-                                acc + "1"
-                            }
-                        }
-                    }
-            )*//*
-                //print the board
-                print("  ");
-                for (j in 0..7) {
-                    print("${File.values()[j]} ")
-                }
-                print('\n')
-                for (i in 0..7) {
-                    print("${Rank.values()[BOARD_SIZE - (i + 1)]} ")
-                    for (j in 0..7) {
-                        print("${board[makeSquare(File.values()[j], Rank.values()[i]).value].char} ")
-                    }
-                    println()
-                }*/
+
     }
 
 
@@ -291,7 +240,6 @@ class Position {
     }
 
     private fun putPiece(piece: Piece, sq: Square) {
-//        println("piece = $piece sq = $sq")
         board[sq.ordinal] = piece
     }
 

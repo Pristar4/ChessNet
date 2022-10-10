@@ -22,7 +22,8 @@ enum class _Color(val value: Int) {
     BLACK(1),
     NONE_NB(2)
 }
-data class Color (val value: Int) {
+
+data class Color(val value: Int) {
     companion object {
         val WHITE = Color(0)
         val BLACK = Color(1)
@@ -57,15 +58,16 @@ enum class Value(val value: Int) {
 
 //    VALUE_TB_WIN_IN_MAX_PLY
 }
+
 enum class PieceType(val char: Char, val i: Int = 0) {
-    NO_PIECE_TYPE('-',0),
-    PAWN('p',1),
-    KNIGHT('n',2),
-    BISHOP('b',3),
-    ROOK('r',4),
-    QUEEN('q',5),
-    KING('k',6),
-    ALL_PIECES('?',0),
+    NO_PIECE_TYPE('-', 0),
+    PAWN('p', 1),
+    KNIGHT('n', 2),
+    BISHOP('b', 3),
+    ROOK('r', 4),
+    QUEEN('q', 5),
+    KING('k', 6),
+    ALL_PIECES('?', 0),
     PIECE_TYPE_NB('#', 8);
 
     val value: Int = if (i == -1) ordinal else i
@@ -83,20 +85,21 @@ enum class PieceType(val char: Char, val i: Int = 0) {
 //  PIECE_NB = 16
 enum class Piece(val value: Int = 0) {
     NO_PIECE(0),
-    W_PAWN( 1),
+    W_PAWN(1),
     W_KNIGHT(2),
     W_BISHOP(3),
-    W_ROOK(  4),
-    W_QUEEN( 5),
-    W_KING(  6),
-    B_PAWN(  9),
+    W_ROOK(4),
+    W_QUEEN(5),
+    W_KING(6),
+    B_PAWN(9),
     B_KNIGHT(10),
     B_BISHOP(11),
-    B_ROOK(  12),
-    B_QUEEN( 13),
+    B_ROOK(12),
+    B_QUEEN(13),
     B_KING(14),
-//TODO remove vincent sagt ist nur in c und c++ relevant
-    PIECE_NB( 16);
+
+    //TODO remove vincent sagt ist nur in c und c++ relevant
+    PIECE_NB(16);
 
     companion object {
         fun getPiece(char: Char): Piece {
@@ -117,8 +120,8 @@ enum class Piece(val value: Int = 0) {
             }
         }
 
-        fun getPiece(i:Int):Piece{
-            return when(i){
+        fun getPiece(i: Int): Piece {
+            return when (i) {
                 1 -> W_PAWN
                 2 -> W_KNIGHT
                 3 -> W_BISHOP
@@ -155,7 +158,7 @@ enum class Piece(val value: Int = 0) {
     }
 }
 
-data class Coord (val x: Int, val y: Int)
+data class Coord(val x: Int, val y: Int)
 
 val BOARD_SIZE: Int = 8
 
@@ -173,11 +176,14 @@ enum class Square(i: Int = -1) {
     SQUARE_NB(64);
 
 
-
-
     companion object {
         fun getSquare(coord: Coord): Square {
             return squareArray[coord.x][coord.y]
+        }
+
+        // getSquare(int: Int): Square
+        fun getSquare(i: Int): Square {
+            return Square.values()[i]
         }
 
         val squareArray: Array<Array<Square>> = Array(BOARD_SIZE) {
@@ -187,9 +193,9 @@ enum class Square(i: Int = -1) {
 
         }
 
-        fun A (row: Int): Square {
+       /* fun A(row: Int): Square {
             return squareArray[0][row];
-        }
+        }*/
     }
 
     val coordinate: Coord
@@ -221,6 +227,17 @@ enum class Direction(val value: Int) {
 fun isOk(s: Square): Boolean {
     return s >= Square.SQ_A1 && s <= Square.SQ_H8;
 }
+
+fun file_of(s: Square): Any {
+
+    return File.values()[s.value % 8]
+}
+
+fun rank_of(s: Square): Any {
+    return Rank.values()[s.value shr 3];
+
+}
+
 enum class File(val char: Char) {
     FILE_A('A'),
     FILE_B('B'),
@@ -262,10 +279,13 @@ fun makePiece(c: Color, pt: PieceType): Piece {
 
 
 }
+
 fun relativeSquare(color: Color, square: Square): Square {
-    return Square.getSquare(Coord(
-        square.coordinate.x,
-        if (color == Color.WHITE) square.coordinate.y else 7 - square.coordinate.y
-    ))
+    return Square.getSquare(
+        Coord(
+            square.coordinate.x,
+            if (color == Color.WHITE) square.coordinate.y else 7 - square.coordinate.y
+        )
+    )
 }
 
