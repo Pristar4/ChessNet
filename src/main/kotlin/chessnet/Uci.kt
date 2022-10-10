@@ -16,42 +16,51 @@ class Uci {
         private fun position(
             pos: Position,
             scanner: Scanner,
-            states: List<String>
+            states: ArrayDeque<StateInfo>
         ) {
             var m: Move
             var token: String = ""
             var fen: String
 
+
             token = scanner.next()
+
             println("token: $token")
 
             if (token == "startpos") {
                 fen = StartFEN
-                // Check if there is a next token but dont wait for it
                 println("startfen")
                 if (scanner.hasNext()) {
-                    scanner.reset()
+                    scanner.reset() // Consume the "moves" token, if any
                 }
 
 
             } else if (token == "fen") {
                 fen = ""
+                println("FEN: WORKING")
                 while (scanner.hasNext()) {
                     token = scanner.next()
                     if (token == "moves") break
                     fen += "$token "
                 }
-            } else {
-                println("Error (unknown command): $token")
+            } else return
 
+
+            states.clear()  // Drop the old state and create a new one
+            //FIXME: is this correct? adding a new state here?
+            states.add(StateInfo())
+            pos.set(fen, false, states.last)
+
+            // Parse move list (if any)
+            while (scanner.hasNext()) {
+                token = scanner.next()
+                m = Uci.to_move(pos, token)
+                if (m == Move.MOVE_NONE) break
 
             }
 
-            //states = StateListPtr(StateInfo(), 0)
-            //pos.set(fen, false, states, pos.thread())
-
-
         }
+
 
         fun go(pos: Int, scanner: Scanner, states: List<String>) {
             println("bestmove e2e4")
@@ -65,9 +74,11 @@ class Uci {
             val argc = argv.size
             var token = ""
             var cmd = ""
-            var states: StateInfo =
-                StateInfo()// Drop the old state and create a new one
-            pos.set(StartFEN, false, states)
+            var states: ArrayDeque<StateInfo> = ArrayDeque<StateInfo>()
+            //FIXME: is this correct? add a state to the deque here?
+            states.add(StateInfo())
+            // Drop the old state and create a new one
+            pos.set(StartFEN, false, states.last)
 
 
             // Parse the move list, if any
@@ -90,7 +101,7 @@ class Uci {
                 }
                 val ss = Scanner(cmd)
 
-                if (ss.hasNext())token = ss.next()
+                if (ss.hasNext()) token = ss.next()
 
                 println("token: $token")
 
@@ -106,7 +117,7 @@ class Uci {
                     var states = listOf<String>()
                     go(pos, ss, states)
                 } else if (token == "position") {
-                    position(pos, ss, listOf<String>())
+                    position(pos, ss, states)
                 } else if (token == "ucinewgame") {
                     //Search::clear(); // After a new game our old search is not valid
                 } //Search.clear()
@@ -130,6 +141,26 @@ class Uci {
 
 
         }
+
+        /* to_move() converts a given string representing a move in coordinate
+         * notation ( g1f3,a7a8q) to the corresponding legal Move, if any.
+         */
+        private fun to_move(pos: Position, _str: String): Move {
+            var str = _str
+            if (str.length == 5) {
+                //The promotion piece character must be lower case
+                str = str.substring(0, 4) + str[4].lowercaseChar()
+            }
+            // FIXME:  Add MoveLists/ Add Move Generation
+            //for (const auto& m : MoveList<LEGAL>(pos))
+            //      if (str == UCI::move(m, pos.is_chess960()))
+            //          return m;
+
+            return Move.MOVE_NONE
+
+
+        }
+
     }
 
 }

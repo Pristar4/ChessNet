@@ -51,21 +51,18 @@ enum class Value(val value: Int) {
 //    VALUE_TB_WIN_IN_MAX_PLY
 }
 enum class PieceType(val char: Char, val i: Int = 0) {
-    NO_PIECE_TYPE('-'),
-    PAWN('p'),
-    KNIGHT('n'),
-    BISHOP('b'),
-    ROOK('r'),
-    QUEEN('q'),
-    KING('k'),
+    NO_PIECE_TYPE('-',0),
+    PAWN('p',1),
+    KNIGHT('n',2),
+    BISHOP('b',3),
+    ROOK('r',4),
+    QUEEN('q',5),
+    KING('k',6),
     ALL_PIECES('?',0),
     PIECE_TYPE_NB('#', 8);
 
-    val value: Int
+    val value: Int = if (i == -1) ordinal else i
 
-    init {
-        value = if (i == -1) ordinal else i
-    }
 
     override fun toString(): String {
         return char.toString();
@@ -77,31 +74,59 @@ enum class PieceType(val char: Char, val i: Int = 0) {
 //  W_PAWN = PAWN,     W_KNIGHT, W_BISHOP, W_ROOK, W_QUEEN, W_KING,
 //  B_PAWN = PAWN + 8, B_KNIGHT, B_BISHOP, B_ROOK, B_QUEEN, B_KING,
 //  PIECE_NB = 16
-enum class EPiece(val char: Char) {
-    NO_PIECE(' '),
-    W_PAWN(  'P'),
-    W_KNIGHT('N'),
-    W_BISHOP('B'),
-    W_ROOK(  'R'),
-    W_QUEEN( 'Q'),
-    W_KING(  'K'),
-    B_PAWN(  'p'),
-    B_KNIGHT('n'),
-    B_BISHOP('b'),
-    B_ROOK(  'r'),
-    B_QUEEN( 'q'),
-    B_KING(  'k');
+enum class Piece(val i: Int = 0) {
+    NO_PIECE(0),
+    W_PAWN( 1),
+    W_KNIGHT(2),
+    W_BISHOP(3),
+    W_ROOK(  4),
+    W_QUEEN( 5),
+    W_KING(  6),
+    B_PAWN(  9),
+    B_KNIGHT(10),
+    B_BISHOP(11),
+    B_ROOK(  12),
+    B_QUEEN( 13),
+    B_KING(14);
 //TODO remove vincent sagt ist nur in c und c++ relevant
 //    PIECE_NB('?', 16);
 
     companion object {
-        fun getPiece(char: Char): EPiece {
-            return EPiece.values().find { ePiece -> ePiece.char == char } ?: NO_PIECE
+        fun getPiece(char: Char): Piece {
+            return when (char) {
+                'P' -> W_PAWN
+                'N' -> W_KNIGHT
+                'B' -> W_BISHOP
+                'R' -> W_ROOK
+                'Q' -> W_QUEEN
+                'K' -> W_KING
+                'p' -> B_PAWN
+                'n' -> B_KNIGHT
+                'b' -> B_BISHOP
+                'r' -> B_ROOK
+                'q' -> B_QUEEN
+                'k' -> B_KING
+                else -> NO_PIECE
+            }
         }
     }
 
     override fun toString(): String {
-        return char.toString();
+        return when (this) {
+            W_PAWN -> "P"
+            W_KNIGHT -> "N"
+            W_BISHOP -> "B"
+            W_ROOK -> "R"
+            W_QUEEN -> "Q"
+            W_KING -> "K"
+            B_PAWN -> "p"
+            B_KNIGHT -> "n"
+            B_BISHOP -> "b"
+            B_ROOK -> "r"
+            B_QUEEN -> "q"
+            B_KING -> "k"
+            else -> "-"
+        }
     }
 }
 
@@ -199,4 +224,8 @@ enum class Rank(val char: Char) {
 }
 
 
-
+fun makePiece(color: Color, pieceType: PieceType): Piece {
+    return Piece.values().find {
+        piece -> piece.ordinal == (color.ordinal * 6) + pieceType.ordinal + 1
+    } ?: Piece.NO_PIECE
+}
