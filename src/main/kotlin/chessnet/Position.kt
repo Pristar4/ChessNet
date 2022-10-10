@@ -12,13 +12,12 @@ class Position {
 
 
     // Data members
-    var board: Array<EPiece> = Array(SQUARE_NB.value) { EPiece.NO_PIECE }
+    var board: Array<EPiece> = Array(SQUARE_NB.value) { NO_PIECE }
 
     // Position::set() initializes the position object with the given FEN string.
 /// This function is not very robust - make sure that input FENs are correct,
 /// this is assumed to be the responsibility of the GUI.
-    fun set(fenStr: String, isChess960: Boolean, si: StateInfo) {
-        /*
+    fun set(fenStr: String, isChess960: Boolean, si: StateInfo) {/*
                       A FEN string defines a particular position using only the ASCII character set.
 
                       A FEN string contains six fields separated by a space. The fields are:
@@ -83,10 +82,8 @@ class Position {
                 sq = makeSquare(File.values()[col], Rank.values()[row])
                 //println("sq = $sq col = $col row = $row token = $token idx = $idx")
                 putPiece(EPiece.getPiece(token), sq)
-
                 col++
             }
-
             /*      token = 'A'
             println("startToken: $token")
         while ((ss.hasNext()) && !token.isWhitespace()) {
@@ -105,7 +102,7 @@ class Position {
 
         */
         }
-        /*println(board.map { ePiece -> ePiece.char.toString() }.reduce { acc, char ->
+    /*println(board.map { ePiece -> ePiece.char.toString() }.reduce { acc, char ->
                     if (char != " ") acc + char; else {
                         if (acc.last().isDigit() && acc.last().code != 8) {
                             val count: Int = acc.last().code + 1
@@ -117,7 +114,6 @@ class Position {
                     }
                 }
         )*/
-
         /*
                 //print the board
                 print("  ");
@@ -132,8 +128,6 @@ class Position {
                     }
                     println()
                 }*/
-
-
     }
 
     private fun makeSquare(file: File, rank: Rank): Square {
@@ -142,25 +136,7 @@ class Position {
 
     private fun putPiece(piece: EPiece, sq: Square) {
 //        println("piece = $piece sq = $sq")
-        board[sq.ordinal] = piece;
-    }
-
-    fun fen(): String {
-        var emptyCnt: Int = 0
-        var fen: String = ""
-
-        for (r:Rank in Rank.values()) {
-            for (f:File in File.values()) {
-                println("r = $r f = $f")
-            }
-
-        }
-
-
-
-        return ""
-
-
+        board[sq.ordinal] = piece
     }
 
 

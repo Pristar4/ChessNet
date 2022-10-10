@@ -9,6 +9,7 @@ fun main(argv: Array<String>) {
     Bitboards.init()
 
 
+
     Uci.loop(argv)
 
 //    val board: Board = Board();

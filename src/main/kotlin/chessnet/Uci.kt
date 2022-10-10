@@ -8,39 +8,55 @@ class Uci {
         TODO()
     }
 
-     companion object {
-        const val StartFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+    companion object {
+        const val StartFEN =
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
 
-         fun position(pos:Position, scanner:Scanner,states:List<String>){
-             var m:Move
-             var token : String
-             var fen : String
+        private fun position(
+            pos: Position,
+            scanner: Scanner,
+            states: List<String>
+        ) {
+            var m: Move
+            var token: String = ""
+            var fen: String
 
-            // TODO: MAKE A SCANNER ONLY FOR THE LOOP AND USE IT TO READ THE NEXT TOKEN NOT THIS ONE
+         /*   if (!scanner.hasNext()) {
                 token = scanner.next()
-             if (token == "startpos") {
-                    fen = StartFEN
-                 println("fen: $fen")
-                 // Consume the "moves" token, if any
-                    if (scanner.hasNext()) {
-                        token = scanner.next()
-                    }
-                 }
-             else if (token == "fen") {
-                      fen = ""
-                      while (scanner.hasNext()) {
-                            token = scanner.next()
-                            if (token == "moves") break
-                            fen += "$token "
-                      }
-                 } else return
+            }*/
+            token = scanner.next()
+            println("token: $token")
 
-             //states = StateListPtr(StateInfo(), 0)
+
+            if (token == "startpos") {
+                fen = StartFEN
+                // Check if there is a next token but dont wait for it
+                println("startfen")
+                if (scanner.hasNext()) {
+                    scanner.reset()
+                }
+
+
+            } else if (token == "fen") {
+                fen = ""
+                while (scanner.hasNext()) {
+                    token = scanner.next()
+                    if (token == "moves") break
+                    fen += "$token "
+                }
+            } else {
+                println("Error (unknown command): $token")
+
+
+            }
+
+            //states = StateListPtr(StateInfo(), 0)
             //pos.set(fen, false, states, pos.thread())
 
 
-         }
+        }
+
         fun go(pos: Int, scanner: Scanner, states: List<String>) {
             println("bestmove e2e4")
         }
@@ -76,22 +92,18 @@ class Uci {
                 if (token == "quit" || token == "stop") //TODO : Stop Threads
                 else if (token == "uci") {
                     print("id name " + engineInfo(true) + "\n" + "uciok\n")
-                }
-                else if (token == "go") {
+                } else if (token == "go") {
                     var pos = 0
                     var states = listOf<String>()
                     go(pos, scanner, states)
-                }
-                else if (token == "position") {
+                } else if (token == "position") {
                     position(pos, scanner, listOf<String>())
-                }
-                else if (token == "ucinewgame") {
-                    println("bestmove ")
+                } else if (token == "ucinewgame") {
+                    //Search::clear(); // After a new game our old search is not valid
                 } //Search.clear()
                 else if (token == "isready") {
                     println("readyok")
-                }
-                else if (token == "--help" || token == "help" || token == "-license") {
+                } else if (token == "--help" || token == "help" || token == "-license") {
                     print(
                         "\n Chessnet is a uci chess engine written in Kotlin." +
                                 "\nIt is based on the Stockfish chess engine." +
@@ -100,13 +112,12 @@ class Uci {
                                 "\nFor more information visit https://github.com/Pristar4/Chessnet" +
                                 "\nor read the README file.\n"
                     )
-                }
-                else if (token.isNotEmpty() && token[0] != '#') {
+                } else if (token.isNotEmpty() && token[0] != '#') {
                     println("Unknown command: $token")
                 }
 
 
-            } while (token != "quit" && argc == 0) //The command-line arguments are one-shot
+            } while (token != "quit" || argc == 0) //The command-line arguments are one-shot
 
 
         }

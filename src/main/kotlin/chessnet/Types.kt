@@ -174,8 +174,8 @@ enum class File(val char: Char) {
     FILE_E('E'),
     FILE_F('F'),
     FILE_G('G'),
-    FILE_H('H'),
-    FILE_NB('?');
+    FILE_H('H');
+    //FILE_NB('?');
 
     override fun toString(): String {
         return char.toString()
@@ -190,8 +190,8 @@ enum class Rank(val char: Char) {
     RANK_5('5'),
     RANK_6('6'),
     RANK_7('7'),
-    RANK_8('8'),
-    RANK_NB('?');
+    RANK_8('8');
+    //RANK_NB('?');
 
     override fun toString(): String {
         return char.toString()
