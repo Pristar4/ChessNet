@@ -101,3 +101,5 @@ fabric.properties
 
 #Remove idea folder
 .idea
+
+megalinter-reports/

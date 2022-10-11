@@ -1,5 +1,6 @@
 package chessnet
 
+import chessnet.movegen.Movegen
 import java.util.*
 
 class Uci {
@@ -9,8 +10,7 @@ class Uci {
     }
 
     companion object {
-        const val StartFEN =
-            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+        const val StartFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
 
         private fun position(
@@ -23,12 +23,12 @@ class Uci {
 
             token = scanner.next()
 
-            println("token: $token")
+//            println("token: $token")
 
             if (token == "startpos") {
                 fen = StartFEN
                 if (scanner.hasNext()) {
-                    scanner.reset() // Consume the "moves" token, if any
+                    token = scanner.next() // Consume the "moves" token, if any
                 }
 
 
@@ -42,7 +42,7 @@ class Uci {
             } else return
 
 
-            states.clear()  // Drop the old state and create a new one
+           /* states.clear() */ // Drop the old state and create a new one
             //FIXME: is this correct? adding a new state here?
             states.add(StateInfo())
             pos.set(fen, false, states.last)
@@ -50,16 +50,41 @@ class Uci {
             // Parse move list (if any)
             while (scanner.hasNext()) {
                 token = scanner.next()
-                m = Uci.to_move(pos, token)
+                m = Uci.toMove(pos, token)
                 if (m == Move.MOVE_NONE) break
+                states.add(StateInfo())
+                pos.doMove(m, states.last)
 
             }
 
         }
 
 
-        fun go(pos: Int, scanner: Scanner, states: List<String>) {
+        fun go(pos: Position, scanner: Scanner, states: ArrayDeque<StateInfo>) {
+
+
+            var token: String
+            var pondermode: Boolean = false
+
+            while (scanner.hasNext()) {
+                token = scanner.next()
+                if (token == "searchmoves") // Needs to be the Last command on the line
+                {
+                    while (scanner.hasNext()) {
+                        token = scanner.next()
+                        //Todo add move to searchmoves
+                    }
+                } else if (token == "infinite") {
+                }
+
+            }
+//            Threads.startThinking(pos,states,limits,ponderMode)
+            //get valid moves
+            var moves = Movegen.generate<Movegen.GenType>(pos, listOf())
+//            println("moves: $moves")
             println("bestmove e2e4")
+
+
         }
 
         fun loop(argv: Array<String>) {
@@ -70,7 +95,7 @@ class Uci {
             val argc = argv.size
             var token = ""
             var cmd = ""
-            var states: ArrayDeque<StateInfo> = ArrayDeque<StateInfo>()
+            val states: ArrayDeque<StateInfo> = ArrayDeque<StateInfo>()
             //FIXME: is this correct? add a state to the deque here?
             states.add(StateInfo())
             // Drop the old state and create a new one
@@ -101,18 +126,15 @@ class Uci {
 
                 if (ss.hasNext()) token = ss.next()
 
-                println("token: $token")
-
-
+//                println("token: $token")
 
 
                 if (token == "quit" || token == "stop") //TODO : Stop Threads
                 else if (token == "uci") {
                     print("id name " + engineInfo(true) + "\n" + "uciok\n")
                 } else if (token == "go") {
-                    var pos = 0
-                    var states = listOf<String>()
                     go(pos, ss, states)
+                } else if (token == "setoption") {
                 } else if (token == "position") {
                     position(pos, ss, states)
                 } else if (token == "ucinewgame") {
@@ -124,7 +146,9 @@ class Uci {
                     print(
                         "\n Chessnet is a uci chess engine written in Kotlin." + "\nIt is based on the Stockfish chess engine." + "\nIt is free and open source software distributed under the" + "\nGNU General Public License version 3." + "\nFor more information visit https://github.com/Pristar4/Chessnet" + "\nor read the README file.\n"
                     )
-                } else if (token.isNotEmpty() && token[0] != '#') {
+
+                } else if (token == "d") println(Bitboards.pretty(DARK_SQUARES))
+                else if (token.isNotEmpty() && token[0] != '#') {
                     println("Unknown command: $token")
                 }
 
@@ -134,10 +158,25 @@ class Uci {
 
         }
 
-        /* to_move() converts a given string representing a move in coordinate
+        /* move() converts a Move to a string in coordinate notation (g1f3, a7a8q).
+         * The only special case is castling where the e1g1 notation is printed in
+         * standard chess mode and in e1h1 notation it is printed in Chess960 mode.
+         * Internally, all castling moves are always encoded as 'king captures rook'.
+         */
+        fun move(m: Move, chess960: Boolean) {         /*   var from: Square = fromSquare(m)
+                        var to: Square = toSquare(m)
+
+                        if (m == MOVE_NONE) return "(none)"
+                        if (m == MOVE_NULL) return "0000"
+                        if (typeOf<Move>(m) == CASTLING && !chess960) to =
+                            makeSquare(if (to > from) to FILE_G else to FILE_C, to RANK_1)*/
+        }
+
+
+        /* toMove() converts a given string representing a move in coordinate
          * notation ( g1f3,a7a8q) to the corresponding legal Move, if any.
          */
-        private fun to_move(pos: Position, _str: String): Move {
+        private fun toMove(pos: Position, _str: String): Move {
             var str = _str
             if (str.length == 5) {
                 //The promotion piece character must be lower case
