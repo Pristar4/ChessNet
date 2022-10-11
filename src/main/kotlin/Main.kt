@@ -7,6 +7,7 @@ fun main(argv: Array<String>) {
     println()
 
     Bitboards.init()
+    print( Bitboards.pretty(0x0102040810204080uL))
 
 
 
