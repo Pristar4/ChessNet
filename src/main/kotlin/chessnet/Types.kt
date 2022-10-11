@@ -166,7 +166,9 @@ val BOARD_SIZE: Int = 8
 
 fun Square(x: Int, y: Int): Int {
     return Square.values()[x * BOARD_SIZE + y].value
+
 }
+
 
 enum class Square(i: Int = -1) {
     SQ_A1, SQ_B1, SQ_C1, SQ_D1, SQ_E1, SQ_F1, SQ_G1, SQ_H1,
@@ -181,16 +183,15 @@ enum class Square(i: Int = -1) {
     SQUARE_ZERO(0),
     SQUARE_NB(64);
 
-
     companion object {
         fun getSquare(coord: Coord): Square {
             return squareArray[coord.x][coord.y]
         }
-
-        // getSquare(int: Int): Square
         fun getSquare(i: Int): Square {
-            return Square.values()[i]
+            if (isOk(i))return Square.values()[i]
+            return SQ_NONE
         }
+
 
 
         val squareArray: Array<Array<Square>> = Array(BOARD_SIZE) {
@@ -211,18 +212,22 @@ enum class Square(i: Int = -1) {
         }*/
 
     }
+    operator fun get (i: Int): Square {
+        return Square.values()[i-1]
+    }
+
 
     val coordinate: Coord
     val value: Int
 
     init {
         value = if (i == -1) ordinal else i
-
         coordinate = if (i == -1)
             Coord(ordinal % BOARD_SIZE, ordinal / BOARD_SIZE)
         else
             Coord(-1, -1)
     }
+
 }
 
 enum class Direction(val value: Int) {
@@ -239,7 +244,10 @@ enum class Direction(val value: Int) {
 
 
 fun isOk(s: Square): Boolean {
-    return s >= SQ_A1 && s <= SQ_H8;
+    return s in SQ_A1..SQ_H8
+}
+fun isOk(s: Int): Boolean {
+    return s in 0..63
 }
 
 fun fileOf(s: Square): Any {

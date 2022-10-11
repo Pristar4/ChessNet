@@ -237,6 +237,7 @@ class Position {
 
     private fun makeSquare(file: File, rank: Rank): Square {
         return Square.values()[file.ordinal + rank.ordinal * BOARD_SIZE]
+
     }
 
     private fun putPiece(piece: Piece, sq: Square) {

@@ -33,12 +33,9 @@ class Bitboards {
                     pawnAttacksBb(Color.BLACK, s1)*/
 
                 for (step in listOf(-9, -8, -7, -1, 1, 7, 8, 9)) {
+
                     PseudoAttacks[KING.value][s1] =
-                        PseudoAttacks[KING.value][s1] or safeDestination(
-                            Square.getSquare(s1), step
-                        )
-
-
+                        PseudoAttacks[KING.value][s1] or safeDestination(s1, step)
                 }
 
                 /* for (step in listOf(-17, -15, -10, -6, 6, 10, 15, 17)) {
@@ -54,6 +51,7 @@ class Bitboards {
 
  */
             }
+            println("DONE")
 
 
         }
@@ -147,9 +145,9 @@ val BishopMagics: Array<Magic> =
 /// distance() functions return the distance between x and y, defined as the
 /// number of steps for a king in x to reach y.
 
-private fun squareBb(s1: Square): Bitboard {
-//    assert(is_ok(s))
-    return SquareBB[s1.value]
+private fun squareBb(s: Square): Bitboard {
+    assert(isOk(s))
+    return SquareBB[s.value]
 
 }
 
@@ -158,8 +156,8 @@ inline fun <reified T> distance(
 ): Int { //inline to improve performance (no runtime overhead)
     // Sexy Kotlin code to get the distance between two squares on the same rank or file
     return when (T::class) {
-        File::class -> kotlin.math.abs(x / 8 - y / 8)
-        Rank::class -> kotlin.math.abs(x % 8 - y % 8)
+        File::class -> kotlin.math.abs(x / BOARD_SIZE - y / BOARD_SIZE)
+        Rank::class -> kotlin.math.abs(x % BOARD_SIZE - y % BOARD_SIZE)
         Square::class -> SquareDistance[x][y].toInt()
         else -> throw Exception("Unknown type")
     }
@@ -238,15 +236,13 @@ private infix fun Any.ushr(shift: Int): Any {
     }
 }
 
-
 // TODO: check if this should be here or in companion object
-fun safeDestination(s: Square, step: Int): Bitboard {
-    val to = Square.getSquare(
-        s.value + step
-    )
-//            return (isOk(to) && if (distance() <= 2) squareBb(to) else Bitboard.MIN_VALUE )
-    val dist = distance<Square>(s.value, to.value)
-    return if (isOk(to) && dist <= 2) squareBb(to) else Bitboard.MIN_VALUE
+fun safeDestination(s: Int, step: Int): Bitboard {
+    var to : Square = Square.getSquare(s + step)
+
+    var result = if (isOk(to) && distance<Square>(s,to.value) <= 2) squareBb(to) else Bitboard.MIN_VALUE
+    println("result: $result")
+    return result
 
 
 }
