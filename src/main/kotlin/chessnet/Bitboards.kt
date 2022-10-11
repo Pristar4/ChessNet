@@ -1,6 +1,6 @@
 package chessnet
 
-import chessnet.Color.Companion.COLOR_NB
+import chessnet.Color.*
 import chessnet.PieceType.*
 import chessnet.Square.SQUARE_NB
 
@@ -26,8 +26,7 @@ class Bitboards {
 
             //init_magics(ROOK,RookTable,RookMagics);
             //init_magics(BISHOP,BishopTable,BishopMagics);
-            for (s1 in 0..63) {
-                /*PawnAttacks[Color.WHITE.value][s1] =
+            for (s1 in 0..63) {/*PawnAttacks[Color.WHITE.value][s1] =
                     pawnAttacksBb(Color.WHITE, s1)
                 PawnAttacks[Color.BLACK.value][s1] =
                     pawnAttacksBb(Color.BLACK, s1)*/
@@ -35,7 +34,9 @@ class Bitboards {
                 for (step in listOf(-9, -8, -7, -1, 1, 7, 8, 9)) {
 
                     PseudoAttacks[KING.value][s1] =
-                        PseudoAttacks[KING.value][s1] or safeDestination(s1, step)
+                        PseudoAttacks[KING.value][s1] or safeDestination(
+                            s1, step
+                        )
                 }
 
                 /* for (step in listOf(-17, -15, -10, -6, 6, 10, 15, 17)) {
@@ -51,8 +52,6 @@ class Bitboards {
 
  */
             }
-            println("DONE")
-
 
         }
 
@@ -62,11 +61,10 @@ class Bitboards {
         fun pretty(b: Bitboard): String {
             println("pretty")
             var s = "+---+---+---+---+---+---+---+---+\n"
-            for (r in Rank.RANK_8.ordinal downTo Rank.RANK_1.ordinal) {
-                for (f in File.FILE_A.ordinal..File.FILE_H.ordinal) {
+            for (r in 7 downTo 0) {
+                for (f in 0..7) {
                     s += if (b and SquareBB[Square(
-                            f,
-                            r
+                            f, r
                         )] != 0UL
                     ) "| X " else "|   "
 
@@ -115,31 +113,25 @@ val Center: Bitboard = (FileDBB or FileEBB) and (Rank4BB or Rank5BB)
 val PopCnt16: Array<UByte> = Array(65536) { 0U }
 
 
-val SquareDistance: Array<Array<UByte>> =
-    Array(SQUARE_NB.value) { Array(SQUARE_NB.value) { 0U } }
+val SquareDistance: Array<Array<UByte>> = Array(SQUARE_NB.value) { Array(SQUARE_NB.value) { 0U } }
 
 
-val SquareBB: Array<Bitboard> = Array(SQUARE_NB.value) { 1UL shl it }
-val BetweenBB: Array<Array<Bitboard>> =
-    Array(SQUARE_NB.value) { Array(SQUARE_NB.value) { 0UL } }
-val LineBB: Array<Array<Bitboard>> =
-    Array(SQUARE_NB.value) { Array(SQUARE_NB.value) { 0UL } }
+val SquareBB: Array<Bitboard> = Array(SQUARE_NB.value) { 0UL }
+val BetweenBB: Array<Array<Bitboard>> = Array(SQUARE_NB.value) { Array(SQUARE_NB.value) { 0UL } }
+val LineBB: Array<Array<Bitboard>> = Array(SQUARE_NB.value) { Array(SQUARE_NB.value) { 0UL } }
 val PseudoAttacks: Array<Array<Bitboard>> =
     Array(PIECE_TYPE_NB.value) { Array(SQUARE_NB.value) { 0UL } }
-val PawnAttacks: Array<Array<Bitboard>> =
-    Array(COLOR_NB.value) { Array(SQUARE_NB.value) { 0UL } }
+val PawnAttacks: Array<Array<Bitboard>> = Array(COLOR_NB.value) { Array(SQUARE_NB.value) { 0UL } }
 
 class Magic(
     val mask: Bitboard,
     val magic: Bitboard,
     val attacks: Array<Bitboard>,
-    val shift: Int
+    val shift: Int,
 )
 
-val RookMagics: Array<Magic> =
-    Array(SQUARE_NB.value) { Magic(0UL, 0UL, Array(4096) { 0UL }, 0) }
-val BishopMagics: Array<Magic> =
-    Array(SQUARE_NB.value) { Magic(0UL, 0UL, Array(512) { 0UL }, 0) }
+val RookMagics: Array<Magic> = Array(SQUARE_NB.value) { Magic(0UL, 0UL, Array(4096) { 0UL }, 0) }
+val BishopMagics: Array<Magic> = Array(SQUARE_NB.value) { Magic(0UL, 0UL, Array(512) { 0UL }, 0) }
 
 
 /// distance() functions return the distance between x and y, defined as the
@@ -151,8 +143,37 @@ private fun squareBb(s: Square): Bitboard {
 
 }
 
+/* Overloads of bitwise operators between a Bitboard and a Square for testing
+ * whether a given bit is set in a bitboard, and for setting and clearing bits.
+ */
+
+operator fun Bitboard.get(s: Square): Boolean {
+    assert(isOk(s))
+    return this and squareBb(s) != 0UL
+}
+operator fun ULong.not(): Boolean {
+    return this == 0UL
+
+}
+
+/* line_bb() returns a bitboard representing an entire line (from board edge
+*  to board edge) that intersects the two given squares. If the given squares
+*  are not on a same file/rank/diagonal, the function returns 0. For instance,
+*  line_bb(SQ_C4, SQ_F7) will return a bitboard with the A2-G8 diagonal.
+* */
+fun lineBB(s1: Square, s2: Square): Bitboard {
+    assert(isOk(s1) && isOk(s2))
+    return LineBB[s1.value][s2.value]
+
+}
+
+fun aligned(s1: Square, s2: Square, s3: Square): Bitboard {
+    return lineBB(s1, s2) and squareBb(s3)
+}
+
+
 inline fun <reified T> distance(
-    x: Int, y: Int
+    x: Int, y: Int,
 ): Int { //inline to improve performance (no runtime overhead)
     // Sexy Kotlin code to get the distance between two squares on the same rank or file
     return when (T::class) {
@@ -194,14 +215,13 @@ inline fun <reified Pt : PieceType> attacksBb(s1: Square): Bitboard {
 
 inline fun attacksBb(
     Pt: PieceType,
-    s1: Square, occupied: Bitboard
+    s1: Square, occupied: Bitboard,
 ): Bitboard {
     return when (Pt::class) {
         PieceType.BISHOP::class -> bishopAttacksBb(s1, occupied)
         PieceType.ROOK::class -> rookAttacksBb(s1, occupied)
         PieceType.QUEEN::class -> bishopAttacksBb(
-            s1,
-            occupied
+            s1, occupied
         ) or rookAttacksBb(s1, occupied)
 
         else -> throw Exception("Unknown piece type")
@@ -238,11 +258,46 @@ private infix fun Any.ushr(shift: Int): Any {
 
 // TODO: check if this should be here or in companion object
 fun safeDestination(s: Int, step: Int): Bitboard {
-    var to : Square = Square.getSquare(s + step)
+    val to: Square = Square.getSquare(s + step)
 
-    var result = if (isOk(to) && distance<Square>(s,to.value) <= 2) squareBb(to) else Bitboard.MIN_VALUE
-    println("result: $result")
-    return result
+    return if (isOk(to) && distance<Square>(
+            s, to.value
+        ) <= 2
+    ) squareBb(to) else Bitboard.MIN_VALUE
 
 
+}
+
+
+inline fun lsb(b: Bitboard): Square {
+    assert(b != 0UL)
+    val idx: Int = BitScanForward(b)
+
+
+    return Square.getSquare(idx)
+
+
+}
+
+
+inline fun msb(b: Bitboard): Square {
+    assert(b != 0UL)
+    val idx: Int = BitScanReverse(b)
+    return Square.getSquare(idx)
+}
+
+fun BitScanForward(b: Bitboard): Int {
+    var idx: Int = 0
+    while (b and (1UL shl idx) == 0UL) {
+        idx++
+    }
+    return idx
+}
+
+fun BitScanReverse(b: Bitboard): Int {
+    var idx: Int = 63
+    while (b and (1UL shl idx) == 0UL) {
+        idx--
+    }
+    return idx
 }
