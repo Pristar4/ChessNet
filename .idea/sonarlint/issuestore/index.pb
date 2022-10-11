@@ -5,5 +5,19 @@ D
 .circleci/config.yml,f\d\fd5da61396a8376845bee5cdf71aaf3c98a888ae
 W
 'src/main/kotlin/chessnet/Engine_Info.kt,b\8\b8aaec1774363027647b9512d3afba2b3b6e68ef
-G
-src/main/kotlin/Main.kt,d\8\d83ae3847b7d408136086cc5e9e95f5f7c126ed5
+@
+build.gradle.kts,d\b\dbcff70658daf80b53ce624f6adcaa529df5ed8d
+S
+#.idea/sonarlint/issuestore/index.pb,9\f\9fe84ebb15faf917b7def6236dba604453cc61e0
+O
+src/main/kotlin/chessnet/Uci.kt,f\0\f0216b7e39c9845ac9ee576be245a5e983c33147
+Q
+!src/main/kotlin/chessnet/Board.kt,5\8\58925542cda90c650d20b085397f13df7524c712
+P
+ src/main/kotlin/chessnet/Tile.kt,b\1\b131651ac739f4013d5db1f647a2b4e386b876e6
+T
+$src/main/kotlin/chessnet/Position.kt,b\9\b9686e5093b62e75c9e800c5e74b9adec9ae3cb7
+U
+%src/main/kotlin/chessnet/StateInfo.kt,4\d\4d2d18cdbb5b225eccf9be90595016e8be5ba6ff
+W
+'src/test/kotlin/chessnet/TypesKtTest.kt,1\3\1392daf1d5eb45b88895216c32edbc533f729871

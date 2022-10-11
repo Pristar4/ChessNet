@@ -1,5 +1,7 @@
 package chessnet
 
+import chessnet.Square.*
+
 
 // this File hold all type definitions
 typealias Bitboard = ULong
@@ -162,6 +164,10 @@ data class Coord(val x: Int, val y: Int)
 
 val BOARD_SIZE: Int = 8
 
+fun Square(x: Int, y: Int): Int {
+    return Square.values()[x * BOARD_SIZE + y].value
+}
+
 enum class Square(i: Int = -1) {
     SQ_A1, SQ_B1, SQ_C1, SQ_D1, SQ_E1, SQ_F1, SQ_G1, SQ_H1,
     SQ_A2, SQ_B2, SQ_C2, SQ_D2, SQ_E2, SQ_F2, SQ_G2, SQ_H2,
@@ -183,19 +189,27 @@ enum class Square(i: Int = -1) {
 
         // getSquare(int: Int): Square
         fun getSquare(i: Int): Square {
-            return Square.values()[i]
+            return values()[i]
         }
+
 
         val squareArray: Array<Array<Square>> = Array(BOARD_SIZE) {
             Array(BOARD_SIZE) {
-                Square.SQ_NONE
+                SQ_NONE
             }
 
         }
 
-       /* fun A(row: Int): Square {
-            return squareArray[0][row];
+        /*init {
+            for (i in 0..7) {
+                for (j in 0..7) {
+                    squareArray[i][j] = getSquare(i * 8 + j)
+
+                }
+            }
+
         }*/
+
     }
 
     val coordinate: Coord
@@ -225,15 +239,15 @@ enum class Direction(val value: Int) {
 
 
 fun isOk(s: Square): Boolean {
-    return s >= Square.SQ_A1 && s <= Square.SQ_H8;
+    return s >= SQ_A1 && s <= SQ_H8;
 }
 
-fun file_of(s: Square): Any {
+fun fileOf(s: Square): Any {
 
     return File.values()[s.value % 8]
 }
 
-fun rank_of(s: Square): Any {
+fun rankOf(s: Square): Any {
     return Rank.values()[s.value shr 3];
 
 }
