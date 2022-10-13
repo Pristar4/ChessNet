@@ -15,8 +15,8 @@ class Board {
     }
 
     fun addPiece(type: PieceType, color: Color, square: Square) {
-        val coords = square.coordinate;
-        var tile = tiles[coords.x][coords.y];
+        val coords = square.coordinate
+        var tile = tiles[coords.x][coords.y]
         tile.type = type
         tile.color = color;
     }

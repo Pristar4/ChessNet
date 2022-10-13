@@ -1,6 +1,8 @@
 package chessnet
 
-import chessnet.movegen.Movegen
+import chessnet.movegen.*
+
+
 import java.util.*
 
 class Uci {
@@ -14,7 +16,7 @@ class Uci {
 
 
         private fun position(
-            pos: Position, scanner: Scanner, states: ArrayDeque<StateInfo>
+            pos: Position, scanner: Scanner, states: ArrayDeque<StateInfo>,
         ) {
             var m: Move
             var token: String = ""
@@ -42,7 +44,7 @@ class Uci {
             } else return
 
 
-           /* states.clear() */ // Drop the old state and create a new one
+            /* states.clear() */ // Drop the old state and create a new one
             //FIXME: is this correct? adding a new state here?
             states.add(StateInfo())
             pos.set(fen, false, states.last)
@@ -50,7 +52,7 @@ class Uci {
             // Parse move list (if any)
             while (scanner.hasNext()) {
                 token = scanner.next()
-                m = Uci.toMove(pos, token)
+                m = toMove(pos, token)
                 if (m == Move.MOVE_NONE) break
                 states.add(StateInfo())
                 pos.doMove(m, states.last)
@@ -74,16 +76,13 @@ class Uci {
                         token = scanner.next()
                         //Todo add move to searchmoves
                     }
-                } else if (token == "infinite") {
                 }
 
             }
 //            Threads.startThinking(pos,states,limits,ponderMode)
-            //get valid moves
-            var moves = Movegen.generate<Movegen.GenType>(pos, listOf())
-//            println("moves: $moves")
-            println("bestmove e2e4")
-
+            //generate Pawn moves
+            val pawnMoves = Movegen.generatePawnMoves(pos, _moveList = MoveList(),target=1UL,Color.WHITE,GenType.QUIETS)
+            println("pawn moves: ${pawnMoves.moveList}")
 
         }
 
@@ -147,7 +146,8 @@ class Uci {
                         "\n Chessnet is a uci chess engine written in Kotlin." + "\nIt is based on the Stockfish chess engine." + "\nIt is free and open source software distributed under the" + "\nGNU General Public License version 3." + "\nFor more information visit https://github.com/Pristar4/Chessnet" + "\nor read the README file.\n"
                     )
 
-                } else if (token == "d") println(Bitboards.pretty(DARK_SQUARES))
+                } else if (token == "d") println(Bitboards.pretty(pos.pieces()))
+
                 else if (token.isNotEmpty() && token[0] != '#') {
                     println("Unknown command: $token")
                 }

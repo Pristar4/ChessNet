@@ -5,7 +5,6 @@ import chessnet.Piece.*
 import chessnet.Color.*
 import chessnet.CastlingRights.*
 import chessnet.Square.*
-import chessnet.Move.*
 import chessnet.MoveType.*
 import java.util.*
 import kotlin.math.max
@@ -105,7 +104,12 @@ class Position {
         return st.epSquare
     }
 
-    private fun blockersForKing(c: Color): Bitboard {
+    fun checkers(): Bitboard {
+        return st.checkersBB
+
+    }
+
+    fun blockersForKing(c: Color): Bitboard {
 
         return st.blockersForKing[c.value]
     }
@@ -307,8 +311,14 @@ class Position {
 
     }
 
-    private fun putPiece(piece: Piece, sq: Square) {
-        board[sq.ordinal] = piece
+    private fun putPiece(piece: Piece, s: Square) {
+        board[s.ordinal] = piece
+        byTypeBB[ALL_PIECES.value] = byTypeBB[typeOf(piece).value]  or squareBb(s)
+        byColorBB[colorOf(piece).value] = byColorBB[colorOf(piece).value] or squareBb(s)
+        pieceCount[piece.value]++
+        pieceCount[makePiece(colorOf(piece), ALL_PIECES).value]++
+        //FIXME: psq does not work
+//        psq = psq + psq[piece.value][s.ordinal]
     }
 
     private fun removePiece(s: Square) {
@@ -347,48 +357,41 @@ class Position {
 
         //Is there a discovered check?
         if ((blockersForKing(sideToMove) and SquareBB[from.value] != 0UL) && !aligned(
-                from,
-                to,
-                square(KING, sideToMove)
+                from, to, square(KING, sideToMove)
             )
-        )
-            return when (typeOf(m)) {
-                NORMAL -> false
-                PROMOTION -> attacksBb(
-                    promotionType(m),
-                    to,
-                    pieces() xor SquareBB[from.value]
-                ) and SquareBB[square(KING, sideToMove).value] != 0UL
+        ) return when (typeOf(m)) {
+            NORMAL -> false
+            PROMOTION -> attacksBb(
+                promotionType(m), to, pieces() xor SquareBB[from.value]
+            ) and SquareBB[square(KING, sideToMove).value] != 0UL
 
-                /* En passant capture with check? We have already handled the case
-                 * of direct checks and ordinary discovered check, so the only case we
-                 * need to handle is the unusual case of a discovered check through
-                 * the captured pawn.
-                 */
-                EN_PASSANT -> {
-                    var capsq: Square = makeSquare(fileOf(to), rankOf(from))
-                    var b: Bitboard = (pieces() xor from xor capsq) or SquareBB[to.value]
-                    return (attacksBb(ROOK, square(KING, sideToMove), b) and (pieces(
-                        sideToMove,
-                        QUEEN,
-                        ROOK
-                    ) or (attacksBb(BISHOP, square(KING, sideToMove), b) and (pieces(
-                        sideToMove,
-                        QUEEN,
-                        BISHOP
-                    ))))) != 0UL
-                }
-                //CASTLING
-                else -> {
-                    // Castling moves are encoded as 'king captures the rook'
-                    //TODO: check if  the Squares for castling are correct
-                    var ksq:Square = square(KING, sideToMove)
-                    var rto:Square = relativeSquare(sideToMove,if (to > from) SQ_F1 else SQ_D1)
-
-                    //TODO: Check if the occupancy is correct
-                    return (attacksBb(ROOK,rto,pieces() xor ksq xor rto) and SquareBB[ksq.value] != 0UL)
-                }
+            /* En passant capture with check? We have already handled the case
+             * of direct checks and ordinary discovered check, so the only case we
+             * need to handle is the unusual case of a discovered check through
+             * the captured pawn.
+             */
+            EN_PASSANT -> {
+                var capsq: Square = makeSquare(fileOf(to), rankOf(from))
+                var b: Bitboard = (pieces() xor from xor capsq) or SquareBB[to.value]
+                return (attacksBb(ROOK, square(KING, sideToMove), b) and (pieces(
+                    sideToMove, QUEEN, ROOK
+                ) or (attacksBb(BISHOP, square(KING, sideToMove), b) and (pieces(
+                    sideToMove, QUEEN, BISHOP
+                ))))) != 0UL
             }
+            //CASTLING
+            else -> {
+                // Castling moves are encoded as 'king captures the rook'
+                //TODO: check if  the Squares for castling are correct
+                var ksq: Square = square(KING, sideToMove)
+                var rto: Square = relativeSquare(sideToMove, if (to > from) SQ_F1 else SQ_D1)
+
+                //TODO: Check if the occupancy is correct
+                return (attacksBb(
+                    ROOK, rto, pieces() xor ksq xor rto
+                ) and SquareBB[ksq.value] != 0UL)
+            }
+        }
         return false
     }
 
@@ -396,7 +399,7 @@ class Position {
         TODO("Not yet implemented")
     }
 
-    private fun square(pt: PieceType, sideToMove: Color): Square {
+    fun square(pt: PieceType, sideToMove: Color): Square {
         assert(count(sideToMove, pt) == 1)
 
         return Square.values()[lsb(pieces(sideToMove, pt))]
@@ -474,6 +477,27 @@ class Position {
         }
 
     }
+
+    fun canCastle(cr: Int): Boolean {
+        return st.castlingRights and cr != 0
+    }
+
+    fun castlingImpeded(cr: CastlingRights): Boolean {
+        assert(cr == WHITE_OO || cr == WHITE_OOO || cr == BLACK_OO || cr == BLACK_OOO)
+
+        return pieces() and castlingPath[cr.value] != 0UL
+
+    }
+
+    fun castlingRookSquare(cr: CastlingRights): Square {
+        assert(cr == WHITE_OO || cr == WHITE_OOO || cr == BLACK_OO || cr == BLACK_OOO)
+
+        return castlingRookSquare[cr.value]
+
+
+    }
+
+
 }
 
 

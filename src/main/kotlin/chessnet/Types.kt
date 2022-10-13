@@ -7,8 +7,25 @@ import chessnet.Square.*
 typealias Bitboard = ULong
 typealias Key = ULong
 
-enum class Move(val value: Int = 0) {
-    MOVE_NONE, MOVE_NULL(65),
+class Move(val value: Int = 0) {
+//    var MOVE_NONE = Move(0)
+//     var MOVE_NULL = Move(65)
+
+    companion object {
+        val MOVE_NONE: Move = Move(0)
+        val MOVE_NULL: Move = Move(65)
+
+        fun make(
+            from: Square,
+            to: Square,
+            pt: PieceType = PieceType.KNIGHT,
+            moveType: MoveType,
+        ): Move {
+            return Move(moveType.value + ((pt.value - PieceType.KNIGHT.value) shl 12) + (from.value shl 6) + to.value)
+
+        }
+    }
+
 }
 
 enum class MoveType(val value: Int) {
@@ -21,6 +38,16 @@ enum class _Color(val value: Int) {
 
 enum class Color(val i: Int) {
     WHITE(0), BLACK(1), COLOR_NB(2);
+
+
+    fun opposite(): Color {
+        return when (this) {
+            WHITE -> BLACK
+            BLACK -> WHITE
+            else -> throw Exception("opposite() not implemented for $this")
+        }
+
+    }
 
     val value: Int = i
 
@@ -55,8 +82,7 @@ fun PieceType(value: Int): PieceType {
 
 enum class PieceType(val char: Char, val i: Int = 0) {
     NO_PIECE_TYPE('-', 0), PAWN('p', 1), KNIGHT('n', 2), BISHOP('b', 3), ROOK('r', 4), QUEEN(
-        'q',
-        5
+        'q', 5
     ),
     KING('k', 6), ALL_PIECES('?', 0), PIECE_TYPE_NB('#', 8);
 
@@ -145,14 +171,18 @@ fun Square(x: Int, y: Int): Int {
 
 
 enum class Square(i: Int = -1) {
+
     SQ_A1, SQ_B1, SQ_C1, SQ_D1, SQ_E1, SQ_F1, SQ_G1, SQ_H1, SQ_A2, SQ_B2, SQ_C2, SQ_D2, SQ_E2, SQ_F2, SQ_G2, SQ_H2, SQ_A3, SQ_B3, SQ_C3, SQ_D3, SQ_E3, SQ_F3, SQ_G3, SQ_H3, SQ_A4, SQ_B4, SQ_C4, SQ_D4, SQ_E4, SQ_F4, SQ_G4, SQ_H4, SQ_A5, SQ_B5, SQ_C5, SQ_D5, SQ_E5, SQ_F5, SQ_G5, SQ_H5, SQ_A6, SQ_B6, SQ_C6, SQ_D6, SQ_E6, SQ_F6, SQ_G6, SQ_H6, SQ_A7, SQ_B7, SQ_C7, SQ_D7, SQ_E7, SQ_F7, SQ_G7, SQ_H7, SQ_A8, SQ_B8, SQ_C8, SQ_D8, SQ_E8, SQ_F8, SQ_G8, SQ_H8, SQ_NONE(
         -2
     ),
     SQUARE_ZERO(0), SQUARE_NB(64);
 
+    var value: Int = if (i == -1) ordinal else i
+    var coordinate: Coord = Coord(value % BOARD_SIZE, value / BOARD_SIZE)
+
     companion object {
         fun getSquare(coord: Coord): Square {
-            return squareArray[coord.x][coord.y]
+            return Square.values()[coord.x * BOARD_SIZE + coord.y]
         }
 
         fun getSquare(i: Int): Square {
@@ -161,22 +191,8 @@ enum class Square(i: Int = -1) {
         }
 
 
-        val squareArray: Array<Array<Square>> = Array(BOARD_SIZE) {
-            Array(BOARD_SIZE) {
-                SQ_NONE
-            }
 
-        }
 
-        /*init {
-            for (i in 0..7) {
-                for (j in 0..7) {
-                    squareArray[i][j] = getSquare(i * 8 + j)
-
-                }
-            }
-
-        }*/
 
     }
 
@@ -184,24 +200,111 @@ enum class Square(i: Int = -1) {
         return Square.values()[i - 1]
     }
 
+    operator fun minus(up: Direction): Square {
+        return Square.values()[value - up.value]
 
-    val coordinate: Coord
-    val value: Int
+    }
+
+    operator fun plus(up: Direction): ULong {
+        return Square.values()[value + up.value].value.toULong()
+
+    }
 
     init {
         value = if (i == -1) ordinal else i
         coordinate = if (i == -1) Coord(ordinal % BOARD_SIZE, ordinal / BOARD_SIZE)
         else Coord(-1, -1)
     }
-
 }
+
+fun CastlingRights(c: Color, cr: CastlingRights): CastlingRights {
+    //TODO check if this is correct
+    return CastlingRights.values()[c.value * 4 + cr.value]
+}
+
 
 enum class Direction(val value: Int) {
     NORTH(8), EAST(1), SOUTH(-NORTH.value), WEST(-EAST.value),
 
     NORTH_EAST(NORTH.value + EAST.value), SOUTH_EAST(SOUTH.value + EAST.value), SOUTH_WEST(SOUTH.value + WEST.value), NORTH_WEST(
         NORTH.value + WEST.value
-    )
+    );
+
+    operator fun plus(north: Direction): Any {
+        return Direction.values()[value + north.value]
+
+    }
+
+    operator fun minus(up: Direction): Direction {
+        return Direction.values()[value - up.value]
+    }
+}
+
+
+enum class File(val char: Char) {
+
+    FILE_A('A'), FILE_B('B'), FILE_C('C'), FILE_D('D'), FILE_E('E'), FILE_F('F'), FILE_G('G'), FILE_H(
+        'H'
+    );
+    //FILE_NB('?');
+    private val value: Int = ordinal
+
+    override fun toString(): String {
+        return char.toString()
+    }
+
+    operator fun plusAssign(toInt: Int) {
+        value + toInt
+
+    }
+
+    operator fun inc() : File {
+
+        return File.values()[value + 1]
+    }
+
+
+}
+
+enum class Rank(val char: Char) {
+    RANK_1('1'), RANK_2('2'), RANK_3('3'), RANK_4('4'), RANK_5('5'), RANK_6('6'), RANK_7('7'), RANK_8(
+        '8'
+    );
+    //RANK_NB('?');
+
+    override fun toString(): String {
+        return char.toString()
+    }
+
+    operator fun inc(): Rank {
+        return Rank.values()[this.ordinal + 1]
+
+    }
+}
+
+enum class Score(value: Int) {
+    SCORE_ZERO(0);
+
+    operator fun get(value: Int): Any {
+        return Score.values()[value]
+
+    }
+
+
+}
+// constexpr Score makeScore(int mg, int eg) { return Score((mg << 16) + eg); }
+
+fun makeScore(mg: Int, eg: Int): Score {
+    return Score.values()[(eg shl 16) + mg]
+}
+
+// Additional operators to add a Direction to a Square
+fun operatorPlus(s: Square, d: Direction): Square {
+    return Square.getSquare(s.ordinal + d.value)
+}
+
+fun operatorMinus(s: Square, d: Direction): Square {
+    return Square.getSquare(s.ordinal - d.value)
 }
 
 
@@ -223,42 +326,16 @@ fun rankOf(s: Square): Rank {
 
 }
 
-enum class File(val char: Char) {
-    FILE_A('A'), FILE_B('B'), FILE_C('C'), FILE_D('D'), FILE_E('E'), FILE_F('F'), FILE_G('G'), FILE_H(
-        'H'
-    );
-    //FILE_NB('?');
-
-    override fun toString(): String {
-        return char.toString()
-    }
+fun relativeRank(c: Color, s: Square): Rank {
+    return Rank.values()[s.value xor (c.value * 56)]
 }
 
-enum class Rank(val char: Char) {
-    RANK_1('1'), RANK_2('2'), RANK_3('3'), RANK_4('4'), RANK_5('5'), RANK_6('6'), RANK_7('7'), RANK_8(
-        '8'
-    );
-    //RANK_NB('?');
-
-    override fun toString(): String {
-        return char.toString()
-    }
+fun relativeRank(c: Color, r: Rank): Rank {
+    return Rank.values()[r.ordinal xor (c.value * 56)]
 }
 
-enum class Score(value: Int) {
-    SCORE_ZERO(0);
-
-    operator fun get(value: Int): Any {
-        return Score.values()[value]
-
-    }
-
-
-}
-// constexpr Score makeScore(int mg, int eg) { return Score((mg << 16) + eg); }
-
-fun makeScore(mg: Int, eg: Int): Score {
-    return Score.values()[(eg shl 16) + mg]
+fun pawnPush(c: Color): Direction {
+    return if (c == Color.WHITE) Direction.NORTH else Direction.SOUTH
 }
 
 
@@ -276,12 +353,8 @@ fun typeOf(pc: Piece): PieceType {
 }
 
 fun relativeSquare(color: Color, square: Square): Square {
-    return Square.getSquare(
-        Coord(
-            square.coordinate.x,
-            if (color == Color.WHITE) square.coordinate.y else 7 - square.coordinate.y
-        )
-    )
+    //TODO: check if this is correct
+    return Square.getSquare(square.value xor (color.value * 56))
 }
 
 fun fromSq(m: Move): Square {
@@ -304,10 +377,19 @@ fun colorOf(pc: Piece): Color {
 
 }
 
+fun makeMove(from: Square, to: Square): Move {
+    return Move((from.value shl 6) + to.value)
+
+}
+
+
 fun isOk(m: Move): Boolean {
     return fromSq(m) != toSq(m)
 
 }
+
+
+
 
 
 

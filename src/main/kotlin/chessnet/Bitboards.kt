@@ -3,6 +3,7 @@ package chessnet
 import chessnet.Color.*
 import chessnet.PieceType.*
 import chessnet.Square.SQUARE_NB
+import chessnet.Direction.*
 
 
 class Bitboards {
@@ -83,6 +84,13 @@ class Bitboards {
 }
 
 
+var _b: Bitboard = 0UL
+    get() {
+        return field
+    }
+    set(value) {
+        field = value
+    }
 const val ALL_SQUARES: Bitboard = ULong.MAX_VALUE
 const val DARK_SQUARES: Bitboard = 0xAA55AA55AA55AA55UL
 const val FileABB: Bitboard = 0x0101010101010101UL
@@ -128,7 +136,13 @@ class Magic(
     val magic: Bitboard,
     val attacks: Array<Bitboard>,
     val shift: Int,
-)
+) {
+    fun index(occupied: Bitboard): Int {
+        //TODO: check if this is correct
+        return ((occupied and mask) * magic ushr shift).toInt()
+
+    }
+}
 
 val RookMagics: Array<Magic> = Array(SQUARE_NB.value) { Magic(0UL, 0UL, Array(4096) { 0UL }, 0) }
 val BishopMagics: Array<Magic> = Array(SQUARE_NB.value) { Magic(0UL, 0UL, Array(512) { 0UL }, 0) }
@@ -137,7 +151,7 @@ val BishopMagics: Array<Magic> = Array(SQUARE_NB.value) { Magic(0UL, 0UL, Array(
 /// distance() functions return the distance between x and y, defined as the
 /// number of steps for a king in x to reach y.
 
-private fun squareBb(s: Square): Bitboard {
+fun squareBb(s: Square): Bitboard {
     assert(isOk(s))
     return SquareBB[s.value]
 
@@ -151,9 +165,60 @@ operator fun Bitboard.get(s: Square): Boolean {
     assert(isOk(s))
     return this and squareBb(s) != 0UL
 }
+
 operator fun ULong.not(): Boolean {
     return this == 0UL
 
+}
+
+fun moreThanOne(b: Bitboard): Boolean {
+    return (b and (b - 1u)) != 0UL
+
+}
+
+fun oppositeColors() {}
+
+/*  rankBb() and fileBb() return a bitboard representing all the squares on the
+ * given file or rank.
+ */
+
+fun rankBb(r: Rank): Bitboard {
+    return (Rank1BB shl (8 * r.ordinal))
+}
+
+fun rankBb(s: Square): Bitboard {
+
+    return rankBb(rankOf(s))
+}
+
+fun fileBb(f: File): Bitboard {
+    return (FileABB shl f.ordinal)
+}
+
+fun fileBb(s: Square): Bitboard {
+
+    return fileBb(fileOf(s))
+}
+
+// shift() moves a bitboard one or two steps as specified by the given direction D
+
+fun shift(b: Bitboard, d: Any): Bitboard {
+    return when (d) {
+        NORTH -> b shl 8
+        SOUTH -> b shr 8
+        NORTH + NORTH -> b shl 16
+        SOUTH + SOUTH -> b shr 16
+        EAST -> (b and FileHBB.inv()) shl 1
+        WEST -> (b and FileABB.inv()) shr 1
+        NORTH_EAST -> (b and FileHBB.inv()) shl 9
+        NORTH_WEST -> (b and FileABB.inv()) shl 7
+        SOUTH_EAST -> (b and FileHBB.inv()) shr 7
+        SOUTH_WEST -> (b and FileABB.inv()) shr 9
+        else -> 0UL
+
+
+        //TODO: check if this is correct
+    }
 }
 
 /* line_bb() returns a bitboard representing an entire line (from board edge
@@ -161,14 +226,21 @@ operator fun ULong.not(): Boolean {
 *  are not on a same file/rank/diagonal, the function returns 0. For instance,
 *  line_bb(SQ_C4, SQ_F7) will return a bitboard with the A2-G8 diagonal.
 * */
-fun lineBB(s1: Square, s2: Square): Bitboard {
+fun lineBb(s1: Square, s2: Square): Bitboard {
     assert(isOk(s1) && isOk(s2))
-    return LineBB[s1.value][s2.value]
+    return LineBB[s1.ordinal][s2.ordinal]
+
+}
+
+fun betweenBb(s1: Square, s2: Square): Bitboard {
+    assert(isOk(s1) && isOk(s2))
+    return LineBB[s1.ordinal][s2.ordinal]
+
 
 }
 
 fun aligned(s1: Square, s2: Square, s3: Square): Bitboard {
-    return lineBB(s1, s2) and squareBb(s3)
+    return lineBb(s1, s2) and squareBb(s3)
 }
 
 
@@ -199,35 +271,35 @@ fun pawnAttacksBb(c: Color, s1: Int): Bitboard {
 
 /// attacks_bb(Square) returns the pseudo attacks of the give piece type
 /// assuming an empty board.
-inline fun <reified Pt : PieceType> attacksBb(s1: Square): Bitboard {
-    return when (Pt::class) {
-        PieceType.KING::class -> PseudoAttacks[KING.value][s1.value]
-        PieceType.KNIGHT::class -> PseudoAttacks[KNIGHT.value][s1.value]
-        PieceType.BISHOP::class -> PseudoAttacks[BISHOP.value][s1.value]
-        PieceType.ROOK::class -> PseudoAttacks[ROOK.value][s1.value]
-        PieceType.QUEEN::class -> PseudoAttacks[QUEEN.value][s1.value]
-        else -> throw Exception("Unknown piece type")
-    }
+
+fun attacksBb(Pt: PieceType, s: Square): Bitboard {
+    assert((Pt != PAWN) && (isOk(s)))
+
+    //TODO: check if this is correct
+    return PseudoAttacks[Pt.ordinal][s.ordinal - 1]
 
 }
+
 
 // function that returns the pseudo attacks of the give piece type
 
-inline fun attacksBb(
+fun attacksBb(
     Pt: PieceType,
     s1: Square, occupied: Bitboard,
 ): Bitboard {
-    return when (Pt::class) {
-        PieceType.BISHOP::class -> bishopAttacksBb(s1, occupied)
-        PieceType.ROOK::class -> rookAttacksBb(s1, occupied)
-        PieceType.QUEEN::class -> bishopAttacksBb(
-            s1, occupied
-        ) or rookAttacksBb(s1, occupied)
+    return when (Pt) {
+        BISHOP -> BishopMagics[s1.value].attacks[BishopMagics[s1.value].index(occupied)]
+        ROOK -> RookMagics[s1.value].attacks[RookMagics[s1.value].index(occupied)]
+        QUEEN -> {
 
-        else -> throw Exception("Unknown piece type")
+            attacksBb(BISHOP, s1, occupied) or attacksBb(ROOK, s1, occupied)
+        }
+
+        else -> PseudoAttacks[Pt.value][s1.value]
     }
 
 }
+
 
 fun rookAttacksBb(s: Square, occupied: Bitboard): Bitboard {
     val magic = RookMagics[s.value]
@@ -284,6 +356,16 @@ inline fun msb(b: Bitboard): Square {
     assert(b != 0UL)
     val idx: Int = BitScanReverse(b)
     return Square.getSquare(idx)
+}
+
+fun popLsb(b: Bitboard): Square {
+    //FIXME:  popLsb() is not working correctly (doesnt change the bitboard)
+    assert(b != 0UL)
+    val s: Square = lsb(b)
+    _b = b and (b - 1u)
+    return s
+
+
 }
 
 fun BitScanForward(b: Bitboard): Int {
