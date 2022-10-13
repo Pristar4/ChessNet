@@ -81,7 +81,13 @@ class Uci {
             }
 //            Threads.startThinking(pos,states,limits,ponderMode)
             //generate Pawn moves
-            val pawnMoves = Movegen.generatePawnMoves(pos, _moveList = MoveList(),target=1UL,Color.WHITE,GenType.QUIETS)
+            val pawnMoves = Movegen.generatePawnMoves(
+                pos,
+                _moveList = MoveList(),
+                target = 1UL,
+                Color.WHITE,
+                GenType.QUIETS
+            )
             println("pawn moves: ${pawnMoves.moveList}")
 
         }
@@ -146,34 +152,34 @@ class Uci {
                         "\n Chessnet is a uci chess engine written in Kotlin." + "\nIt is based on the Stockfish chess engine." + "\nIt is free and open source software distributed under the" + "\nGNU General Public License version 3." + "\nFor more information visit https://github.com/Pristar4/Chessnet" + "\nor read the README file.\n"
                     )
 
-                } else if (token == "d") println(Bitboards.pretty(pos.pieces()))
+                } else if (token == "d") {
+                    println(Bitboards.pretty(0x100UL))
 
-                else if (token.isNotEmpty() && token[0] != '#') {
+
+
+                } else if (token.isNotEmpty() && token[0] != '#') {
                     println("Unknown command: $token")
                 }
 
+                var sq = newSquare(0)
+                println(sq.newSquare(0).as_string().toString())
 
             } while (token != "quit" && argc == 0) //FIXME: The command-line arguments  should be one-shot
 
 
         }
 
-        /* move() converts a Move to a string in coordinate notation (g1f3, a7a8q).
+        /** move() converts a Move to a string in coordinate notation (g1f3, a7a8q).
          * The only special case is castling where the e1g1 notation is printed in
          * standard chess mode and in e1h1 notation it is printed in Chess960 mode.
          * Internally, all castling moves are always encoded as 'king captures rook'.
          */
-        fun move(m: Move, chess960: Boolean) {         /*   var from: Square = fromSquare(m)
-                        var to: Square = toSquare(m)
+        fun move(m: Move, chess960: Boolean) {
 
-                        if (m == MOVE_NONE) return "(none)"
-                        if (m == MOVE_NULL) return "0000"
-                        if (typeOf<Move>(m) == CASTLING && !chess960) to =
-                            makeSquare(if (to > from) to FILE_G else to FILE_C, to RANK_1)*/
         }
 
 
-        /* toMove() converts a given string representing a move in coordinate
+        /** toMove() converts a given string representing a move in coordinate
          * notation ( g1f3,a7a8q) to the corresponding legal Move, if any.
          */
         private fun toMove(pos: Position, _str: String): Move {

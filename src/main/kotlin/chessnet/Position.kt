@@ -14,7 +14,7 @@ private infix fun ULong.xor(s: Square): ULong {
     return this xor (1UL shl s.value)
 }
 
-private operator fun Any.get(ordinal: Int): Any {
+operator fun Any.get(ordinal: Int): Any {
     return PieceType.values()[ordinal]
 
 }
@@ -39,7 +39,7 @@ class Position {
     //    var psq: Score
     var chess960: Boolean = false
 
-    /*  A list to keep track of the position states along the setup moves( from the start position to the position
+    /**  A list to keep track of the position states along the setup moves( from the start position to the position
      *  just before the search starts). Needed by 'draw by repetition' detection.
      *  use deque because we need to be able to remove the last element
      */
@@ -95,7 +95,7 @@ class Position {
     }
 
 
-    inline fun pieceOn(s: Square): Piece {
+    fun pieceOn(s: Square): Piece {
         assert(isOk(s))
         return board[s.value]
     }
@@ -122,7 +122,7 @@ class Position {
 
     }
 
-    /*  Position::set() initializes the position object with the given FEN string.
+    /**  [set] () initializes the position object with the given FEN string.
      *  This function is not very robust - make sure that input FENs are correct,
      *  this is assumed to be the responsibility of the GUI.
      */
@@ -194,11 +194,11 @@ class Position {
         sideToMove = if (token == 'w') WHITE else Color.BLACK
         token = ss.next().single() // Consume "w" or "b"
 
-        /* 3. Castling availability. Compatible with 3 standards: Normal FEN standard,
-         Shredder-FEN that uses the letters of the columns on which the rooks began
-         the game instead of KQkq and also X-FEN standard that, in case of Chess960,
-         if an inner rook is associated with the castling right, the castling tag is
-         replaced by the file letter of the involved rook, as for the Shredder-FEN.*/
+        /** 3. Castling availability. Compatible with 3 standards: Normal FEN standard,
+        Shredder-FEN that uses the letters of the columns on which the rooks began
+        the game instead of KQkq and also X-FEN standard that, in case of Chess960,
+        if an inner rook is associated with the castling right, the castling tag is
+        replaced by the file letter of the involved rook, as for the Shredder-FEN.*/
         while (ss.hasNext() && !ss.hasNext("\\s")) {
             var rsq: Square = SQ_NONE
             val c: Color = if (token.isLowerCase()) Color.BLACK else WHITE
@@ -223,7 +223,7 @@ class Position {
 
         }
 
-        /* 4. En passant square.
+        /** 4. En passant square.
          * Ignore if square is invalid or  not  on the side to move relative rank 6.
          */
         var enpassant: Boolean = false
@@ -236,7 +236,7 @@ class Position {
         st.rule50 = gamePly
         //TODO: check if rule50 number is correct
 
-        /*
+        /**
          * Convert from fullmove starting from 1 to gamePly starting from 0,
          * handle also common incorrect FEN with fullmove = 0.
          */
@@ -313,7 +313,7 @@ class Position {
 
     private fun putPiece(piece: Piece, s: Square) {
         board[s.ordinal] = piece
-        byTypeBB[ALL_PIECES.value] = byTypeBB[typeOf(piece).value]  or squareBb(s)
+        byTypeBB[ALL_PIECES.value] = byTypeBB[typeOf(piece).value] or squareBb(s)
         byColorBB[colorOf(piece).value] = byColorBB[colorOf(piece).value] or squareBb(s)
         pieceCount[piece.value]++
         pieceCount[makePiece(colorOf(piece), ALL_PIECES).value]++

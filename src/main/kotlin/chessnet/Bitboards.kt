@@ -2,7 +2,7 @@ package chessnet
 
 import chessnet.Color.*
 import chessnet.PieceType.*
-import chessnet.Square.SQUARE_NB
+import chessnet.Square.*
 import chessnet.Direction.*
 
 
