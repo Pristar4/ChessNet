@@ -25,12 +25,3 @@ and Programming Languages in general.
 To build the project, you can run the `build` Gradle task. this will create a jar file in the `build/libs` directory.
 
 
-
-## Packages
-
-| Name |
-|---|
-| [[root]](-chess-net/[root]/index.md) |
-| [chessnet](-chess-net/chessnet/index.md) |
-| [chessnet.movegen](-chess-net/chessnet.movegen/index.md) |
-
