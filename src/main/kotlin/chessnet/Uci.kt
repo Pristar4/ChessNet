@@ -1,7 +1,6 @@
 package chessnet
 
 import chessnet.movegen.*
-import com.sun.source.tree.WhileLoopTree
 
 
 import java.util.*
@@ -82,24 +81,24 @@ class Uci {
             }
 //            Threads.startThinking(pos,states,limits,ponderMode)
             //generate Pawn moves
-            val pawnMoves = Movegen.generatePawnMoves(
-                pos,
-                _moveList = MoveList(),
-                target = 1UL,
-                Color.WHITE,
-                GenType.QUIETS
-            )
-            println("pawn moves: ${pawnMoves.moveList}")
+
+            val movesMoves = Movegen.generateMoves(pos, moveList = MoveList(),pos.pieces(),pos.sideToMove,PieceType.ROOK,false)
+            println("moves: ${movesMoves.moveList}")
+            println("moves: ${movesMoves.move}")
+            println("moves: ${movesMoves.value}")
+            println("moves: ${movesMoves.Move()}")
+
+
 
         }
 
         fun loop(argv: Array<String>) {
 
-            val pos: Position = Position()
+            val pos = Position()
 
             val scanner = Scanner(System.`in`)
             val argc = argv.size
-            var token = ""
+            var token: String
             var cmd = ""
             val states: ArrayDeque<StateInfo> = ArrayDeque<StateInfo>()
             //FIXME: is this correct? add a state to the deque here?
@@ -140,7 +139,7 @@ class Uci {
                     print("id name " + engineInfo(true) + "\n" + "uciok\n")
                 } else if (token == "go") {
                     go(pos, ss, states)
-                } else if (token == "setoption") {
+                } else if (token == "setoption") { TODO("setoption add later")
                 } else if (token == "position") {
                     position(pos, ss, states)
                 } else if (token == "ucinewgame") {

@@ -34,7 +34,6 @@ class MoveList {
 
 }
 
-
 class Movegen {
 
 
@@ -47,12 +46,40 @@ class Movegen {
             type: GenType,
         ): MoveList {
             if (type == GenType.CAPTURES || type == GenType.EVASIONS || type == GenType.NON_EVASIONS) {
-                moveList.moveList.add(Move.make(to - direction, to, QUEEN, MoveType.PROMOTION))
+                moveList.moveList.add(
+                    Move.make(
+                        to - direction,
+                        to,
+                        QUEEN,
+                        MoveType.PROMOTION
+                    )
+                )
             }
             if (type == GenType.QUIETS || type == GenType.EVASIONS || type == GenType.NON_EVASIONS) {
-                moveList.moveList.add(Move.make(to - direction, to, ROOK, MoveType.PROMOTION))
-                moveList.moveList.add(Move.make(to - direction, to, BISHOP, MoveType.PROMOTION))
-                moveList.moveList.add(Move.make(to - direction, to, KNIGHT, MoveType.PROMOTION))
+                moveList.moveList.add(
+                    Move.make(
+                        to - direction,
+                        to,
+                        ROOK,
+                        MoveType.PROMOTION
+                    )
+                )
+                moveList.moveList.add(
+                    Move.make(
+                        to - direction,
+                        to,
+                        BISHOP,
+                        MoveType.PROMOTION
+                    )
+                )
+                moveList.moveList.add(
+                    Move.make(
+                        to - direction,
+                        to,
+                        KNIGHT,
+                        MoveType.PROMOTION
+                    )
+                )
             }
             return moveList
 
@@ -69,8 +96,10 @@ class Movegen {
             val Them: Color = Us.opposite()
             var us = Us
             var ExMoves = _moveList
-            val TRank7BB: Bitboard = (if (Us == Color.WHITE) Rank7BB else Rank2BB)
-            val TRank3BB: Bitboard = (if (Us == Color.WHITE) Rank3BB else Rank6BB)
+            val TRank7BB: Bitboard =
+                (if (Us == Color.WHITE) Rank7BB else Rank2BB)
+            val TRank3BB: Bitboard =
+                (if (Us == Color.WHITE) Rank3BB else Rank6BB)
             val Up: Direction = pawnPush(Us)
             val UpRight: Direction =
                 if (Us == Color.WHITE) Direction.NORTH_EAST else Direction.SOUTH_WEST
@@ -79,7 +108,9 @@ class Movegen {
 
             val emptySquares: Bitboard = pos.pieces().inv()
             val enemies: Bitboard =
-                if (Type == GenType.EVASIONS) pos.checkers() else pos.pieces(Them)
+                if (Type == GenType.EVASIONS) pos.checkers() else pos.pieces(
+                    Them
+                )
 
             var pawnsOn7: Bitboard = pos.pieces(Us, PAWN) and TRank7BB
             var pawnsNotOn7: Bitboard = pos.pieces(Us, PAWN) and TRank7BB.inv()
@@ -98,17 +129,28 @@ class Movegen {
                      * Discovered check promotion has been already generated amongst the captures.
                      */
                     var ksq: Square = pos.square(KING, Them)
-                    var dcCandidatePawns: Bitboard = pos.blockersForKing(Them) and fileBb(ksq).inv()
-                    b1 = b1 and pawnAttacksBb(Them, ksq.value) or shift(dcCandidatePawns, Up)
-                    b2 = b2 and pawnAttacksBb(Them, ksq.value) or shift(dcCandidatePawns, (Up + Up))
+                    var dcCandidatePawns: Bitboard =
+                        pos.blockersForKing(Them) and fileBb(ksq).inv()
+                    b1 = b1 and pawnAttacksBb(Them, ksq.value) or shift(
+                        dcCandidatePawns,
+                        Up
+                    )
+                    b2 = b2 and pawnAttacksBb(Them, ksq.value) or shift(
+                        dcCandidatePawns,
+                        (Up + Up)
+                    )
                 }
                 while (b1 != 0UL) {
-                    val to: Square = popLsb(b1)
+                    var (to, b1_) = popLsb(b1)
                     ExMoves.moveList.add(makeMove(to - Up, to))
+                    b1 = b1_
+
+
                 }
                 while (b2 != 0UL) {
-                    val to: Square = popLsb(b2)
+                    val (to, b2_) = popLsb(b2)
                     ExMoves.moveList.add(makeMove(to - (Up + Up), to))
+                    b2 = b2_
                 }
 
             }
@@ -126,21 +168,34 @@ class Movegen {
                      * Discovered check promotion has been already generated amongst the captures.
                      */
                     val ksq: Square = pos.square(KING, Them)
-                    val dcCandidatePawns: Bitboard = pos.blockersForKing(Them) and fileBb(ksq).inv()
-                    b1 = b1 and pawnAttacksBb(Them, ksq.value) or shift(dcCandidatePawns, Up)
-                    b2 = b2 and pawnAttacksBb(Them, ksq.value) or shift(dcCandidatePawns, Up + Up)
+                    val dcCandidatePawns: Bitboard =
+                        pos.blockersForKing(Them) and fileBb(ksq).inv()
+                    b1 = b1 and pawnAttacksBb(Them, ksq.value) or shift(
+                        dcCandidatePawns,
+                        Up
+                    )
+                    b2 = b2 and pawnAttacksBb(Them, ksq.value) or shift(
+                        dcCandidatePawns,
+                        Up + Up
+                    )
                 }
                 while (b1 != 0UL) {
-                    val to: Square = popLsb(b1)
-                    ExMoves = makePromotions(ExMoves, popLsb(b1), UpRight, Type)
+                    val (to, b1_) = popLsb(b1)
+
+                    ExMoves = makePromotions(ExMoves, to, UpRight, Type)
+                    b1 = b1_
 
                 }
                 while (b2 != 0UL) {
-                    ExMoves = makePromotions(ExMoves, popLsb(b2), UpLeft, Type)
+                    val (to, b2_) = popLsb(b2)
+                    ExMoves = makePromotions(ExMoves, to, UpLeft, Type)
+                    b2 = b2_
 
                 }
                 while (b3 != 0UL) {
-                    ExMoves = makePromotions(ExMoves, popLsb(b3), Up, Type)
+                    val (to, b3_) = popLsb(b3)
+                    ExMoves = makePromotions(ExMoves, to, Up, Type)
+                    b3 = b3_
 
                 }
 
@@ -151,30 +206,42 @@ class Movegen {
                 var b2: Bitboard = shift(pawnsNotOn7, UpLeft) and enemies
 
                 while (b1 != 0UL) {
-                    val to: Square = popLsb(b1)
+                    val (to, b1_) = popLsb(b1)
                     ExMoves.moveList.add(makeMove(to - UpRight, to))
+                    b1 = b1_
 
 
                 }
                 while (b2 != 0UL) {
-                    val to: Square = popLsb(b2)
+                    val (to, b2_) = popLsb(b2)
                     ExMoves.moveList.add(makeMove(to - UpLeft, to))
+                    b2 = b2_
                 }
                 if (pos.epSquare() != Square.SQ_NONE) {
-                    assert(rankOf(pos.epSquare()) == relativeRank(Us, Rank.RANK_6))
+                    assert(
+                        rankOf(pos.epSquare()) == relativeRank(
+                            Us,
+                            Rank.RANK_6
+                        )
+                    )
 
                     // An en passant capture cannot resolve a discovered check
                     if (Type == GenType.EVASIONS && (target and (SquareBB[pos.epSquare().value] + Up.value.toULong())) == 0UL) {
                         return ExMoves
                     }
-                    b1 = pawnsNotOn7 and pawnAttacksBb(Them, pos.epSquare().value)
+                    b1 = pawnsNotOn7 and pawnAttacksBb(
+                        Them,
+                        pos.epSquare().value
+                    )
                     assert(b1 != 0UL)
                     while (b1 != 0UL) {
+                        val (to, b1_) = popLsb(b1)
                         ExMoves.moveList.add(
                             Move.make(
-                                popLsb(b1), pos.epSquare(), KNIGHT, MoveType.EN_PASSANT
+                                to, pos.epSquare(), KNIGHT, MoveType.EN_PASSANT
                             )
                         )
+                        b1 = b1_
                     }
                 }
             }
@@ -182,7 +249,11 @@ class Movegen {
             return ExMoves
         }
 
-        fun generate(pos: Position, moveList: MoveList, type: GenType): MoveList {
+        fun generate(
+            pos: Position,
+            moveList: MoveList,
+            type: GenType
+        ): MoveList {
             var us: Color = pos.sideToMove
             var pinned: Bitboard = pos.blockersForKing(us) and pos.pieces(us)
             var ksq: Square = pos.square(KING, us)
@@ -208,6 +279,21 @@ class Movegen {
             type: PieceType,
             checks: Boolean,
         ): MoveList {
+            assert(type != KING && type != PAWN,
+                { "generateMoves(): bad piece type" })
+            var bb: Bitboard = pos.pieces(Us, type)
+
+            while (bb != 0UL) {
+                val (from, bb_) = popLsb(bb)
+                var b: Bitboard = attacksBb(type, from, target)
+                while (b != 0UL) {
+                    val (to, b_) = popLsb(b)
+//                    moveList.add(makeMove(from, to))
+                    moveList.moveList.add(makeMove(from, to))
+                    b = b_
+                }
+                bb = bb_
+            }
 
             return moveList
 
@@ -215,10 +301,17 @@ class Movegen {
         }
 
 
-        fun generateAll(pos: Position, _moveList: MoveList, Us: Color, Type: GenType): MoveList {
+        fun generateAll(
+            pos: Position,
+            _moveList: MoveList,
+            Us: Color,
+            Type: GenType
+        ): MoveList {
             var moveList: MoveList = _moveList
 
-            assert(Type != GenType.LEGAL, { "generateAll(): Type == LEGAL is not supported" })
+            assert(
+                Type != GenType.LEGAL,
+                { "generateAll(): Type == LEGAL is not supported" })
             var Checks: Boolean = Type == GenType.QUIET_CHECKS
             val ksq: Square = pos.square(KING, Us)
             println("ksq: $ksq")
@@ -235,13 +328,20 @@ class Movegen {
 
                 }
                 moveList = generatePawnMoves(pos, moveList, target, Us, Type)
-                moveList = generateMoves(pos, moveList, target, Us, KNIGHT, Checks)
-                moveList = generateMoves(pos, moveList, target, Us, BISHOP, Checks)
-                moveList = generateMoves(pos, moveList, target, Us, ROOK, Checks)
-                moveList = generateMoves(pos, moveList, target, Us, QUEEN, Checks)
+                moveList =
+                    generateMoves(pos, moveList, target, Us, KNIGHT, Checks)
+                moveList =
+                    generateMoves(pos, moveList, target, Us, BISHOP, Checks)
+                moveList =
+                    generateMoves(pos, moveList, target, Us, ROOK, Checks)
+                moveList =
+                    generateMoves(pos, moveList, target, Us, QUEEN, Checks)
             }
             if (!Checks || pos.blockersForKing(Us.opposite()) and ksq.value.toULong() == 0UL) {
-                var b = attacksBb(KING, ksq) and (if (Type == GenType.EVASIONS) pos.pieces(Us)
+                var b = attacksBb(
+                    KING,
+                    ksq
+                ) and (if (Type == GenType.EVASIONS) pos.pieces(Us)
                     .inv() else target)
                 println(
                     b
@@ -250,18 +350,28 @@ class Movegen {
 
                 if (Checks) {
                     b = b and attacksBb(
-                        QUEEN, pos.square(KING, Color.values()[Us.value xor 1]), pos.pieces()
+                        QUEEN,
+                        pos.square(KING, Color.values()[Us.value xor 1]),
+                        pos.pieces()
                     )
                 }
                 while (b != 0UL) {
-                    moveList.moveList.add(makeMove(ksq, popLsb(b)))
+                    val (to, b_) = popLsb(b)
+                    moveList.moveList.add(makeMove(ksq, to))
+                    b = b_
                 }
-                if ((Type == GenType.QUIETS || Type == GenType.NON_EVASIONS) && pos.canCastle(Us.value and ANY_CASTLING.value)) {
+                if ((Type == GenType.QUIETS || Type == GenType.NON_EVASIONS) && pos.canCastle(
+                        Us.value and ANY_CASTLING.value
+                    )
+                ) {
                     for (cr in listOf(
                         Us.value and KING_SIDE.value,
                         Us.value and QUEEN_SIDE.value
                     )) {
-                        if (!pos.castlingImpeded(CastlingRights.values()[cr]) && pos.canCastle(cr)) { //TODO: check if this is correct
+                        if (!pos.castlingImpeded(CastlingRights.values()[cr]) && pos.canCastle(
+                                cr
+                            )
+                        ) { //TODO: check if this is correct
                             moveList.moveList.add(
                                 Move.make(
                                     ksq,

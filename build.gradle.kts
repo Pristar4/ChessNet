@@ -5,6 +5,7 @@ plugins {
     kotlin("jvm") version "1.7.20"
     kotlin("plugin.serialization") version "1.7.20"
     id("edu.sc.seis.launch4j") version "2.5.3"
+    id("org.jetbrains.dokka") version "1.7.20"
 
     application
 }
@@ -21,10 +22,10 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
-    testImplementation("org.junit.jupiter:junit-jupiter:5.9.0")
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
-    //google test
-//    testImplementation("com.google.truth:truth:1.1.3")
+
+    // Kotlin Documentation tool: Dokka
+    dokkaHtmlPlugin("org.jetbrains.dokka:kotlin-as-java-plugin:1.7.20")
 }
 
 tasks.test {

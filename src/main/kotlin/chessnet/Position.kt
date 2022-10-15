@@ -10,14 +10,8 @@ import java.util.*
 import kotlin.math.max
 
 
-private infix fun ULong.xor(s: Square): ULong {
-    return this xor (1UL shl s.value)
-}
 
-operator fun Any.get(ordinal: Int): Any {
-    return PieceType.values()[ordinal]
 
-}
 
 class Position {
 
@@ -45,106 +39,9 @@ class Position {
     public var StateList: Deque<StateInfo> = ArrayDeque<StateInfo>()
 
 
-    // Castling variables
-
-
-    // returns an ASCII representation of the position
-    override fun toString(): String {
-        var s = ""
-        var f = File.FILE_A.value
-        var r = Rank.RANK_8.value
-        var piece: Piece
-        s += " +---+---+---+---+---+---+---+---+\n"
-        for (r_ in Rank.RANK_1.value..Rank.RANK_8.value) {
-            for (f_ in File.FILE_A.value..File.FILE_H.value) {
-                piece = pieceOn(makeSquare(File.values()[f_], Rank.values()[r_]))
-                s += " | " + if (piece == NO_PIECE) "." else "$piece"
-                f++
-                s += if (f > File.FILE_H.value) " |" else ""
-            }
-            s += "\n +---+---+---+---+---+---+---+---+\n"
-            f = 0
-            r--
-        }
-        s += "sideToMove: $sideToMove\n"
-        s += "castlingRights: ${st.castlingRights}\n"
-        s += "epSquare: ${st.epSquare}\n"
-        s += "gamePly: $gamePly\n"
-        s += "psq: $psq\n"
-        return s
-    }
-
-    // Position representation
-    inline fun movedPiece(m: Move): Piece {
-        return pieceOn(fromSq(m))
-    }
-
-    fun pieces(pt: PieceType = ALL_PIECES): Bitboard {
-        return byTypeBB[pt.value]
-    }
-
-    fun pieces(pt1: PieceType, pt2: PieceType): Bitboard {
-        return pieces(pt1) or pieces(pt2)
-    }
-
-    fun pieces(c: Color): Bitboard {
-        return byColorBB[c.value]
-    }
-
-    fun pieces(c: Color, pt: PieceType): Bitboard {
-        return pieces(c) and pieces(pt)
-    }
-
-    fun pieces(c: Color, pt1: PieceType, pt2: PieceType): Bitboard {
-        return pieces(c) and (pieces(pt1) or pieces(pt2))
-    }
-
-    fun pieces(pt1: PieceType, pt2: PieceType, pt3: PieceType): Bitboard {
-        return pieces(pt1) or pieces(pt2) or pieces(pt3)
-    }
-
-
-    fun count(c: Color, pt: PieceType): Int {
-        return pieceCount[makePiece(c, pt).value]
-    }
-
-    private fun pieceCount(c: Color, pt: PieceType): Int {
-        assert(count(c, pt) >= 0)
-
-        return lsb(pieces(c, pt))
-
-    }
-
-    private fun lsb(pieces: Bitboard): Int {
-        return pieces.countTrailingZeroBits()
-    }
-
-
-    fun pieceOn(s: Square): Piece {
-        assert(isOk(s))
-        return board[s.value]
-    }
-
-    fun epSquare(): Square {
-        return st.epSquare
-    }
-
-    fun checkers(): Bitboard {
-        return st.checkersBB
-
-    }
-
-    fun blockersForKing(c: Color): Bitboard {
-
-        return st.blockersForKing[c.value]
-    }
-
-
-    private fun checkSquares(pt: PieceType): Bitboard {
-
-        return st.checkSquares[pt.value]
-
-
+    // init() initializes at startup the various arrays used to compute hash keys
+    fun init(){
+        TODO("not implemented")
     }
 
     /**  [set] () initializes the position object with the given FEN string.
@@ -285,6 +182,116 @@ class Position {
     }
 
 
+    /* setCastlingRights() updates the castling rights given the position of the
+     * rooks and the king. This is called at startup and after a king or rook move.
+     */
+    fun setCastlingRight(c:Color,rfrom: Deque<Square>){
+        TODO("Not yet implemented")
+
+    }
+
+    // returns an ASCII representation of the position
+    override fun toString(): String {
+        var s = ""
+        var f = File.FILE_A.value
+        var r = Rank.RANK_8.value
+        var piece: Piece
+        s += " +---+---+---+---+---+---+---+---+\n"
+        for (r_ in Rank.RANK_1.value..Rank.RANK_8.value) {
+            for (f_ in File.FILE_A.value..File.FILE_H.value) {
+                piece = pieceOn(makeSquare(File.values()[f_], Rank.values()[r_]))
+                s += " | " + if (piece == NO_PIECE) "." else "$piece"
+                f++
+                s += if (f > File.FILE_H.value) " |" else ""
+            }
+            s += "\n +---+---+---+---+---+---+---+---+\n"
+            f = 0
+            r--
+        }
+        s += "sideToMove: $sideToMove\n"
+        s += "castlingRights: ${st.castlingRights}\n"
+        s += "epSquare: ${st.epSquare}\n"
+        s += "gamePly: $gamePly\n"
+        s += "psq: $psq\n"
+        return s
+    }
+
+    // Position representation
+    inline fun movedPiece(m: Move): Piece {
+        return pieceOn(fromSq(m))
+    }
+
+    fun pieces(pt: PieceType = ALL_PIECES): Bitboard {
+        return byTypeBB[pt.value]
+    }
+
+    fun pieces(pt1: PieceType, pt2: PieceType): Bitboard {
+        return pieces(pt1) or pieces(pt2)
+    }
+
+    fun pieces(c: Color): Bitboard {
+        return byColorBB[c.value]
+    }
+
+    fun pieces(c: Color, pt: PieceType): Bitboard {
+        return pieces(c) and pieces(pt)
+    }
+
+    fun pieces(c: Color, pt1: PieceType, pt2: PieceType): Bitboard {
+        return pieces(c) and (pieces(pt1) or pieces(pt2))
+    }
+
+    fun pieces(pt1: PieceType, pt2: PieceType, pt3: PieceType): Bitboard {
+        return pieces(pt1) or pieces(pt2) or pieces(pt3)
+    }
+
+
+    fun count(c: Color, pt: PieceType): Int {
+        return pieceCount[makePiece(c, pt).value]
+    }
+
+    private fun pieceCount(c: Color, pt: PieceType): Int {
+        assert(count(c, pt) >= 0)
+
+        return lsb(pieces(c, pt))
+
+    }
+
+    private fun lsb(pieces: Bitboard): Int {
+        return pieces.countTrailingZeroBits()
+    }
+
+
+    fun pieceOn(s: Square): Piece {
+        assert(isOk(s))
+        return board[s.value]
+    }
+
+    fun epSquare(): Square {
+        return st.epSquare
+    }
+
+    fun checkers(): Bitboard {
+        return st.checkersBB
+
+    }
+
+    fun blockersForKing(c: Color): Bitboard {
+
+        return st.blockersForKing[c.value]
+    }
+
+
+    private fun checkSquares(pt: PieceType): Bitboard {
+
+        return st.checkSquares[pt.value]
+
+
+    }
+
+
+
+
     private fun setCheckInfo(si: StateInfo) {
         //TODO: setCheckInfo implementation
 
@@ -348,9 +355,9 @@ class Position {
 
     private fun removePiece(s: Square) {
         var pc: Piece = board[s.ordinal]
-        byTypeBB[ALL_PIECES.value] = byTypeBB[ALL_PIECES.value] xor s
-        byTypeBB[typeOf(pc).value] = byTypeBB[typeOf(pc).value] xor s
-        byColorBB[colorOf(pc).value] = byColorBB[colorOf(pc).value] xor s
+        byTypeBB[ALL_PIECES.value] = byTypeBB[ALL_PIECES.value] xor squareBb(s)
+        byTypeBB[typeOf(pc).value] = byTypeBB[typeOf(pc).value] xor squareBb(s)
+        byColorBB[colorOf(pc).value] = byColorBB[colorOf(pc).value] xor squareBb(s)
         board[s.ordinal] = NO_PIECE
         pieceCount[pc.value]--
         pieceCount[makePiece(colorOf(pc), ALL_PIECES).value]--
@@ -397,7 +404,7 @@ class Position {
              */
             EN_PASSANT -> {
                 var capsq: Square = makeSquare(fileOf(to), rankOf(from))
-                var b: Bitboard = (pieces() xor from xor capsq) or SquareBB[to.value]
+                var b: Bitboard = (pieces() xor squareBb(from) xor squareBb(capsq)) or SquareBB[to.value]
                 return (attacksBb(ROOK, square(KING, sideToMove), b) and (pieces(
                     sideToMove, QUEEN, ROOK
                 ) or (attacksBb(BISHOP, square(KING, sideToMove), b) and (pieces(
@@ -413,7 +420,7 @@ class Position {
 
                 //TODO: Check if the occupancy is correct
                 return (attacksBb(
-                    ROOK, rto, pieces() xor ksq xor rto
+                    ROOK, rto, pieces() xor squareBb(ksq) xor squareBb(rto)
                 ) and SquareBB[ksq.value] != 0UL)
             }
         }

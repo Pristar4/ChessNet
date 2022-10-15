@@ -6,6 +6,7 @@ import chessnet.Color.*
 
 // this File hold all type definitions
 typealias Bitboard = ULong
+
 typealias Key = ULong
 
 class Move(val value: Int = 0) {
@@ -170,9 +171,12 @@ fun Square(x: Int, y: Int): Int {
 
 }
 
-
+/**
+ * A square on a chess board.
+ * @property value The value of the square.
+ * @constructor Creates a new square.
+ */
 enum class Square(i: Int = -1) {
-
     SQ_A1, SQ_B1, SQ_C1, SQ_D1, SQ_E1, SQ_F1, SQ_G1, SQ_H1,
     SQ_A2, SQ_B2, SQ_C2, SQ_D2, SQ_E2, SQ_F2, SQ_G2, SQ_H2,
     SQ_A3, SQ_B3, SQ_C3, SQ_D3, SQ_E3, SQ_F3, SQ_G3, SQ_H3,
@@ -240,7 +244,8 @@ class newSquare(num: Int) {
     }
 
     fun newSquare(row: Int, col: Int) {
-        square_[row * 8 + col]
+//        square_[row * 8 + col]
+        square_ = row * 8 + col
     }
 
     //    BoardSquare(const std::string& str, bool black = false)
@@ -277,7 +282,7 @@ class newSquare(num: Int) {
         return "${('a' + col).toChar()}${('1' + row).toChar()}"
     }
 }
-    // Returns the square in coordinate notation (e.g. "e2").
+// Returns the square in coordinate notation (e.g. "e2").
 
 /*
 private operator fun Char.times(i: Int): Int {
@@ -287,165 +292,165 @@ private operator fun Char.times(i: Int): Int {
 
 
 fun CastlingRights(c: Color, cr: CastlingRights): CastlingRights {
-        //TODO check if this is correct
-        return CastlingRights.values()[c.value * 4 + cr.value]
-    }
+    //TODO check if this is correct
+    return CastlingRights.values()[c.value * 4 + cr.value]
+}
 
 
-    enum class Direction(val value: Int) {
-        NORTH(8), EAST(1), SOUTH(-NORTH.value), WEST(-EAST.value),
+enum class Direction(val value: Int) {
+    NORTH(8), EAST(1), SOUTH(-NORTH.value), WEST(-EAST.value),
 
-        NORTH_EAST(NORTH.value + EAST.value), SOUTH_EAST(SOUTH.value + EAST.value), SOUTH_WEST(SOUTH.value + WEST.value), NORTH_WEST(
-            NORTH.value + WEST.value
-        );
+    NORTH_EAST(NORTH.value + EAST.value), SOUTH_EAST(SOUTH.value + EAST.value), SOUTH_WEST(SOUTH.value + WEST.value), NORTH_WEST(
+        NORTH.value + WEST.value
+    );
 
-        operator fun plus(north: Direction): Direction {
-            return Direction.values()[value + north.value]
-
-        }
-
-        operator fun minus(up: Direction): Direction {
-            return Direction.values()[value - up.value]
-        }
-    }
-
-
-    enum class File(val char: Char) {
-
-        FILE_A('A'), FILE_B('B'), FILE_C('C'), FILE_D('D'), FILE_E('E'), FILE_F('F'), FILE_G('G'), FILE_H(
-            'H'
-        );
-
-
-
-        //FILE_NB('?');
-        var value: Int = ordinal
-
-
-
-
+    operator fun plus(north: Direction): Direction {
+        return Direction.values()[value + north.value]
 
     }
 
-    enum class Rank(val char: Char) {
-        RANK_1('1'), RANK_2('2'), RANK_3('3'), RANK_4('4'), RANK_5('5'), RANK_6('6'), RANK_7('7'), RANK_8(
-            '8'
-        );
+    operator fun minus(up: Direction): Direction {
+        return Direction.values()[value - up.value]
+    }
+}
 
 
-        //RANK_NB('?');
+enum class File(val char: Char) {
 
-        var value: Int = ordinal
+    FILE_A('A'), FILE_B('B'), FILE_C('C'), FILE_D('D'), FILE_E('E'), FILE_F('F'), FILE_G('G'), FILE_H(
+        'H'
+    );
 
 
+
+    //FILE_NB('?');
+    var value: Int = ordinal
+
+
+
+
+
+}
+
+enum class Rank(val char: Char) {
+    RANK_1('1'), RANK_2('2'), RANK_3('3'), RANK_4('4'), RANK_5('5'), RANK_6('6'), RANK_7('7'), RANK_8(
+        '8'
+    );
+
+
+    //RANK_NB('?');
+
+    var value: Int = ordinal
+
+
+
+}
+
+enum class Score(value: Int) {
+    SCORE_ZERO(0);
+
+    operator fun get(value: Int): Any {
+        return Score.values()[value]
 
     }
 
-    enum class Score(value: Int) {
-        SCORE_ZERO(0);
 
-        operator fun get(value: Int): Any {
-            return Score.values()[value]
-
-        }
-
-
-    }
+}
 // constexpr Score makeScore(int mg, int eg) { return Score((mg << 16) + eg); }
 
-    fun makeScore(mg: Int, eg: Int): Score {
-        return Score.values()[(eg shl 16) + mg]
-    }
+fun makeScore(mg: Int, eg: Int): Score {
+    return Score.values()[(eg shl 16) + mg]
+}
 
-    // Additional operators to add a Direction to a Square
-    fun operatorPlus(s: Square, d: Direction): Square {
-        return Square.getSquare(s.ordinal + d.value)
-    }
+// Additional operators to add a Direction to a Square
+fun operatorPlus(s: Square, d: Direction): Square {
+    return Square.getSquare(s.ordinal + d.value)
+}
 
-    fun operatorMinus(s: Square, d: Direction): Square {
-        return Square.getSquare(s.ordinal - d.value)
-    }
-
-
-    fun isOk(s: Square): Boolean {
-        return s in SQ_A1..SQ_H8
-    }
-
-    fun isOk(s: Int): Boolean {
-        return s in 0..63
-    }
-
-    fun fileOf(s: Square): File {
-
-        return File.values()[s.value % 8]
-    }
-
-    fun rankOf(s: Square): Rank {
-        return Rank.values()[s.value shr 3];
-
-    }
-
-    fun relativeRank(c: Color, s: Square): Rank {
-        return Rank.values()[s.value xor (c.value * 56)]
-    }
-
-    fun relativeRank(c: Color, r: Rank): Rank {
-        return Rank.values()[r.ordinal xor (c.value * 56)]
-    }
-
-    fun pawnPush(c: Color): Direction {
-        return if (c == Color.WHITE) Direction.NORTH else Direction.SOUTH
-    }
+fun operatorMinus(s: Square, d: Direction): Square {
+    return Square.getSquare(s.ordinal - d.value)
+}
 
 
-    fun makePiece(c: Color, pt: PieceType): Piece {
-        // a white pawn should be 1
-        // a black pawn should be 9
-        //bit shift left 3 times
-        return Piece.getPiece((c.value shl 3) + pt.value)
+fun isOk(s: Square): Boolean {
+    return s in SQ_A1..SQ_H8
+}
+
+fun isOk(s: Int): Boolean {
+    return s in 0..63
+}
+
+fun fileOf(s: Square): File {
+
+    return File.values()[s.value % 8]
+}
+
+fun rankOf(s: Square): Rank {
+    return Rank.values()[s.value shr 3];
+
+}
+
+fun relativeRank(c: Color, s: Square): Rank {
+    return Rank.values()[s.value xor (c.value * 56)]
+}
+
+fun relativeRank(c: Color, r: Rank): Rank {
+    return Rank.values()[r.ordinal xor (c.value * 56)]
+}
+
+fun pawnPush(c: Color): Direction {
+    return if (c == Color.WHITE) Direction.NORTH else Direction.SOUTH
+}
 
 
-    }
-
-    fun typeOf(pc: Piece): PieceType {
-        return PieceType(pc.value and 7)
-    }
-
-    fun relativeSquare(color: Color, square: Square): Square {
-        //TODO: check if this is correct
-        return Square.getSquare(square.value xor (color.value * 56))
-    }
-
-    fun fromSq(m: Move): Square {
-        return Square.getSquare((m.value shr 6) and 0x3F)
-    }
-
-    fun toSq(m: Move): Square {
-        return Square.getSquare(m.value and 0x3F)
-    }
-
-    fun typeOf(m: Move): MoveType {
-
-        return MoveType.values()[m.value and (3 shl 14)]
-
-    }
-
-    fun colorOf(pc: Piece): Color {
-        assert(pc != Piece.NO_PIECE)
-        return Color.values()[pc.value shr 3]
-
-    }
-
-    fun makeMove(from: Square, to: Square): Move {
-        return Move((from.value shl 6) + to.value)
-
-    }
+fun makePiece(c: Color, pt: PieceType): Piece {
+    // a white pawn should be 1
+    // a black pawn should be 9
+    //bit shift left 3 times
+    return Piece.getPiece((c.value shl 3) + pt.value)
 
 
-    fun isOk(m: Move): Boolean {
-        return fromSq(m) != toSq(m)
+}
 
-    }
+fun typeOf(pc: Piece): PieceType {
+    return PieceType(pc.value and 7)
+}
+
+fun relativeSquare(color: Color, square: Square): Square {
+    //TODO: check if this is correct
+    return Square.getSquare(square.value xor (color.value * 56))
+}
+
+fun fromSq(m: Move): Square {
+    return Square.getSquare((m.value shr 6) and 0x3F)
+}
+
+fun toSq(m: Move): Square {
+    return Square.getSquare(m.value and 0x3F)
+}
+
+fun typeOf(m: Move): MoveType {
+
+    return MoveType.values()[m.value and (3 shl 14)]
+
+}
+
+fun colorOf(pc: Piece): Color {
+    assert(pc != Piece.NO_PIECE)
+    return Color.values()[pc.value shr 3]
+
+}
+
+fun makeMove(from: Square, to: Square): Move {
+    return Move((from.value shl 6) + to.value)
+
+}
+
+
+fun isOk(m: Move): Boolean {
+    return fromSq(m) != toSq(m)
+
+}
 
 
 

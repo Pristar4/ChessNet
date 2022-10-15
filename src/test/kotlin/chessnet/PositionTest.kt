@@ -1,14 +1,21 @@
 package chessnet
 
-import org.junit.jupiter.api.Test
-
 import org.junit.jupiter.api.Assertions.*
 
-class PositionTest {
+import org.junit.jupiter.api.Test
+
+internal class PositionTest {
 
     @Test
-    fun square() {
-        val square = Square.getSquare(Coord(0, 0))
-        assertEquals("a1", square.toString())
+    fun setPositionConstructor() {
+        val states = ArrayDeque<StateInfo>()
+        states.add(StateInfo())
+        // create a position
+        val pos = Position()
+        // init Position with the StartFEN
+        pos.set(Uci.StartFEN, false, states.last())
+
+
+
     }
 }
