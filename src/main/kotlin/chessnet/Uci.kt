@@ -46,6 +46,7 @@ class Uci {
 
             /* states.clear() */ // Drop the old state and create a new one
             //FIXME: is this correct? adding a new state here?
+            states.clear()
             states.add(StateInfo())
             pos.set(fen, false, states.last)
 
@@ -101,9 +102,11 @@ class Uci {
             var token: String
             var cmd = ""
             val states: ArrayDeque<StateInfo> = ArrayDeque<StateInfo>()
+//            states.add(StateInfo())
             //FIXME: is this correct? add a state to the deque here?
-            states.add(StateInfo())
             // Drop the old state and create a new one
+            states.clear()
+            states.add(StateInfo())
             pos.set(StartFEN, false, states.last)
 
 

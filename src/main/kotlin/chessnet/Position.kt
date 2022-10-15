@@ -10,9 +10,6 @@ import java.util.*
 import kotlin.math.max
 
 
-
-
-
 class Position {
 
     // Data members
@@ -21,7 +18,8 @@ class Position {
     var byColorBB: Array<Bitboard> = Array(COLOR_NB.value) { 0UL }
     var pieceCount: Array<Int> = Array(PIECE_NB.value) { 0 }
     var castlingRightsMask: Array<Int> = Array(SQUARE_NB.value) { 0 }
-    var castlingRookSquare: Array<Square> = Array(CASTLING_RIGHT_NB.value) { SQ_A1 }
+    var castlingRookSquare: Array<Square> =
+        Array(CASTLING_RIGHT_NB.value) { SQ_A1 }
     var castlingPath: Array<Bitboard> = Array(CASTLING_RIGHT_NB.value) { 0UL }
     var thisThread: Thread? = null
     private var st: StateInfo = StateInfo()
@@ -40,7 +38,7 @@ class Position {
 
 
     // init() initializes at startup the various arrays used to compute hash keys
-    fun init(){
+    fun init() {
         TODO("not implemented")
     }
 
@@ -90,12 +88,16 @@ class Position {
         val ss: Scanner = Scanner(fenStr)
         ss.useDelimiter("")
 
+        this.board = Array(SQUARE_NB.value) { NO_PIECE }
+        si.pawnKey = 0UL
+        //TODO: Check if there is missing bug for values that are not being reset here
 
         // 1. Piece placement
         while (ss.hasNext() && !ss.hasNext("\\s")) {
             token = ss.next().single()
             if (token.isDigit()) {
-                col += token.toString().toInt() // Advance the given number of files
+                col += token.toString()
+                    .toInt() // Advance the given number of files
 
             } else if (token == '/') {
                 row++
@@ -185,7 +187,7 @@ class Position {
     /* setCastlingRights() updates the castling rights given the position of the
      * rooks and the king. This is called at startup and after a king or rook move.
      */
-    fun setCastlingRight(c:Color,rfrom: Deque<Square>){
+    fun setCastlingRight(c: Color, rfrom: Deque<Square>) {
         TODO("Not yet implemented")
 
     }
@@ -199,7 +201,8 @@ class Position {
         s += " +---+---+---+---+---+---+---+---+\n"
         for (r_ in Rank.RANK_1.value..Rank.RANK_8.value) {
             for (f_ in File.FILE_A.value..File.FILE_H.value) {
-                piece = pieceOn(makeSquare(File.values()[f_], Rank.values()[r_]))
+                piece =
+                    pieceOn(makeSquare(File.values()[f_], Rank.values()[r_]))
                 s += " | " + if (piece == NO_PIECE) "." else "$piece"
                 f++
                 s += if (f > File.FILE_H.value) " |" else ""
@@ -290,8 +293,6 @@ class Position {
     }
 
 
-
-
     private fun setCheckInfo(si: StateInfo) {
         //TODO: setCheckInfo implementation
 
@@ -345,8 +346,10 @@ class Position {
 
     private fun putPiece(piece: Piece, s: Square) {
         board[s.ordinal] = piece
-        byTypeBB[ALL_PIECES.value] = byTypeBB[typeOf(piece).value] or squareBb(s)
-        byColorBB[colorOf(piece).value] = byColorBB[colorOf(piece).value] or squareBb(s)
+        byTypeBB[ALL_PIECES.value] =
+            byTypeBB[typeOf(piece).value] or squareBb(s)
+        byColorBB[colorOf(piece).value] =
+            byColorBB[colorOf(piece).value] or squareBb(s)
         pieceCount[piece.value]++
         pieceCount[makePiece(colorOf(piece), ALL_PIECES).value]++
         //FIXME: psq does not work
@@ -357,12 +360,11 @@ class Position {
         var pc: Piece = board[s.ordinal]
         byTypeBB[ALL_PIECES.value] = byTypeBB[ALL_PIECES.value] xor squareBb(s)
         byTypeBB[typeOf(pc).value] = byTypeBB[typeOf(pc).value] xor squareBb(s)
-        byColorBB[colorOf(pc).value] = byColorBB[colorOf(pc).value] xor squareBb(s)
+        byColorBB[colorOf(pc).value] =
+            byColorBB[colorOf(pc).value] xor squareBb(s)
         board[s.ordinal] = NO_PIECE
         pieceCount[pc.value]--
         pieceCount[makePiece(colorOf(pc), ALL_PIECES).value]--
-        // Todo add Score values
-//        psq[psq.ordinal] = psq -      psq[pc.value][s.value]
     }
 
     private fun posIsOk(): Boolean {
@@ -404,10 +406,19 @@ class Position {
              */
             EN_PASSANT -> {
                 var capsq: Square = makeSquare(fileOf(to), rankOf(from))
-                var b: Bitboard = (pieces() xor squareBb(from) xor squareBb(capsq)) or SquareBB[to.value]
-                return (attacksBb(ROOK, square(KING, sideToMove), b) and (pieces(
+                var b: Bitboard =
+                    (pieces() xor squareBb(from) xor squareBb(capsq)) or SquareBB[to.value]
+                return (attacksBb(
+                    ROOK,
+                    square(KING, sideToMove),
+                    b
+                ) and (pieces(
                     sideToMove, QUEEN, ROOK
-                ) or (attacksBb(BISHOP, square(KING, sideToMove), b) and (pieces(
+                ) or (attacksBb(
+                    BISHOP,
+                    square(KING, sideToMove),
+                    b
+                ) and (pieces(
                     sideToMove, QUEEN, BISHOP
                 ))))) != 0UL
             }
@@ -416,7 +427,8 @@ class Position {
                 // Castling moves are encoded as 'king captures the rook'
                 //TODO: check if  the Squares for castling are correct
                 var ksq: Square = square(KING, sideToMove)
-                var rto: Square = relativeSquare(sideToMove, if (to > from) SQ_F1 else SQ_D1)
+                var rto: Square =
+                    relativeSquare(sideToMove, if (to > from) SQ_F1 else SQ_D1)
 
                 //TODO: Check if the occupancy is correct
                 return (attacksBb(
@@ -467,7 +479,10 @@ class Position {
         to.add(toSq(m))
         var pc = pieceOn(from)
         var captured: Piece =
-            if (typeOf(m) == MoveType.EN_PASSANT) makePiece(them, PAWN) else pieceOn(to.first)
+            if (typeOf(m) == MoveType.EN_PASSANT) makePiece(
+                them,
+                PAWN
+            ) else pieceOn(to.first)
         assert(colorOf(pc) == us)
         assert(captured == NO_PIECE || colorOf(captured) == (if (typeOf(m) != MoveType.CASTLING) them else us))
         assert(typeOf(captured) != KING)
