@@ -64,13 +64,11 @@ class Bitboards {
             var s = "+---+---+---+---+---+---+---+---+\n"
             for (r in 7 downTo 0) {
                 for (f in 0..7) {
-                    s += if (b and SquareBB[Square(
-                            f, r
-                        )] != 0UL
-                    ) "| X " else "|   "
+                    s+= if(b and SquareBB[Square.values()[r * 8 + f].value] == 0uL) "|   " else "| X "
+
 
                 }
-                s += "|\n+---+---+---+---+---+---+---+---+\n"
+                s+= "| " + (r + 1) + "\n+---+---+---+---+---+---+---+---+\n"
 
             }
             s += "  a   b   c   d   e   f   g   h\n"
