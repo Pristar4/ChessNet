@@ -1,6 +1,7 @@
 package chessnet
 
 import chessnet.movegen.*
+import com.sun.source.tree.WhileLoopTree
 
 
 import java.util.*
@@ -153,16 +154,13 @@ class Uci {
                     )
 
                 } else if (token == "d") {
-                    println(Bitboards.pretty(0x100UL))
-
+                    println(pos.toString())
 
 
                 } else if (token.isNotEmpty() && token[0] != '#') {
                     println("Unknown command: $token")
                 }
 
-                var sq = newSquare(0)
-                println(sq.newSquare(0).as_string().toString())
 
             } while (token != "quit" && argc == 0) //FIXME: The command-line arguments  should be one-shot
 

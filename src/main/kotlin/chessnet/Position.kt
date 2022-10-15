@@ -49,6 +49,32 @@ class Position {
     // Castling variables
 
 
+    // returns an ASCII representation of the position
+    override fun toString(): String {
+        var s = ""
+        var f = File.FILE_A.value
+        var r = Rank.RANK_8.value
+        var piece: Piece
+        s += " +---+---+---+---+---+---+---+---+\n"
+        while (r >= Rank.RANK_1.value) {
+            while (f <= File.FILE_H.value) {
+                piece = pieceOn(makeSquare(File.values()[f], Rank.values()[r]))
+                s += " | " + if (piece == NO_PIECE) "." else "$piece"
+                f++
+                s += if (f > File.FILE_H.value) " |" else ""
+            }
+            s += "\n +---+---+---+---+---+---+---+---+\n"
+            f = 0
+            r--
+        }
+        s += "sideToMove: $sideToMove\n"
+        s += "castlingRights: ${st.castlingRights}\n"
+        s += "epSquare: ${st.epSquare}\n"
+        s += "gamePly: $gamePly\n"
+        s += "psq: $psq\n"
+        return s
+    }
+
     // Position representation
     inline fun movedPiece(m: Move): Piece {
         return pieceOn(fromSq(m))
@@ -499,5 +525,6 @@ class Position {
 
 
 }
+
 
 

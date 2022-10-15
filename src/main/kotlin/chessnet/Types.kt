@@ -316,22 +316,13 @@ fun CastlingRights(c: Color, cr: CastlingRights): CastlingRights {
             'H'
         );
 
+
+
         //FILE_NB('?');
-        private val value: Int = ordinal
+        var value: Int = ordinal
 
-        override fun toString(): String {
-            return char.toString()
-        }
 
-        operator fun plusAssign(toInt: Int) {
-            value + toInt
 
-        }
-
-        operator fun inc(): File {
-
-            return File.values()[value + 1]
-        }
 
 
     }
@@ -340,16 +331,14 @@ fun CastlingRights(c: Color, cr: CastlingRights): CastlingRights {
         RANK_1('1'), RANK_2('2'), RANK_3('3'), RANK_4('4'), RANK_5('5'), RANK_6('6'), RANK_7('7'), RANK_8(
             '8'
         );
+
+
         //RANK_NB('?');
 
-        override fun toString(): String {
-            return char.toString()
-        }
+        var value: Int = ordinal
 
-        operator fun inc(): Rank {
-            return Rank.values()[this.ordinal + 1]
 
-        }
+
     }
 
     enum class Score(value: Int) {
