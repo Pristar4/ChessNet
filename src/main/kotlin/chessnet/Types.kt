@@ -299,7 +299,7 @@ fun CastlingRights(c: Color, cr: CastlingRights): CastlingRights {
             NORTH.value + WEST.value
         );
 
-        operator fun plus(north: Direction): Any {
+        operator fun plus(north: Direction): Direction {
             return Direction.values()[value + north.value]
 
         }

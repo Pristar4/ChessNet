@@ -21,7 +21,6 @@ operator fun Any.get(ordinal: Int): Any {
 
 class Position {
 
-
     // Data members
     var board: Array<Piece> = Array(SQUARE_NB.value) { NO_PIECE }
     var byTypeBB: Array<Bitboard> = Array(PIECE_TYPE_NB.value) { 0UL }
@@ -56,9 +55,9 @@ class Position {
         var r = Rank.RANK_8.value
         var piece: Piece
         s += " +---+---+---+---+---+---+---+---+\n"
-        while (r >= Rank.RANK_1.value) {
-            while (f <= File.FILE_H.value) {
-                piece = pieceOn(makeSquare(File.values()[f], Rank.values()[r]))
+        for (r_ in Rank.RANK_1.value..Rank.RANK_8.value) {
+            for (f_ in File.FILE_A.value..File.FILE_H.value) {
+                piece = pieceOn(makeSquare(File.values()[f_], Rank.values()[r_]))
                 s += " | " + if (piece == NO_PIECE) "." else "$piece"
                 f++
                 s += if (f > File.FILE_H.value) " |" else ""
@@ -333,7 +332,7 @@ class Position {
 
 
     private fun makeSquare(file: File, rank: Rank): Square {
-        return Square.values()[file.ordinal + rank.ordinal * BOARD_SIZE]
+        return Square.getSquare(file.ordinal + rank.ordinal * BOARD_SIZE)
 
     }
 

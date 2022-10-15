@@ -108,7 +108,7 @@ class Movegen {
                 }
                 while (b2 != 0UL) {
                     val to: Square = popLsb(b2)
-                    ExMoves.moveList.add(makeMove(to - (Up - Up), to))
+                    ExMoves.moveList.add(makeMove(to - (Up + Up), to))
                 }
 
             }
