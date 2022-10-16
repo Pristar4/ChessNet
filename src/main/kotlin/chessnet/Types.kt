@@ -1,13 +1,12 @@
 package chessnet
 
-import chessnet.Square.*
-import chessnet.Color.*
-import java.util.BitSet
+import chessnet.Square.SQ_A1
+import chessnet.Square.SQ_H8
 
 
 // this File hold all type definitions
 typealias Bitboard = ULong
-class BitboardObject(public var bb: Bitboard)
+class BitboardObject(var bb: Bitboard)
 
 
 typealias Key = ULong
@@ -37,11 +36,8 @@ enum class MoveType(val value: Int) {
     NORMAL(0), PROMOTION(1 shl 14), EN_PASSANT(2 shl 14), CASTLING(3 shl 14)
 }
 
-enum class _Color(val value: Int) {
-    WHITE(0), BLACK(1), NONE_NB(2)
-}
 
-enum class Color(val i: Int) {
+enum class Color(i: Int) {
     WHITE(0), BLACK(1), COLOR_NB(2);
 
 
@@ -85,7 +81,7 @@ fun PieceType(value: Int): PieceType {
     return PieceType.values()[value]
 }
 
-enum class PieceType(val char: Char, val i: Int = 0) {
+enum class PieceType(val char: Char, i: Int = 0) {
     NO_PIECE_TYPE('-', 0), PAWN('p', 1), KNIGHT('n', 2), BISHOP('b', 3), ROOK('r', 4), QUEEN(
         'q', 5
     ),
@@ -95,7 +91,7 @@ enum class PieceType(val char: Char, val i: Int = 0) {
 
 
     override fun toString(): String {
-        return char.toString();
+        return char.toString()
     }
 }
 
@@ -223,8 +219,16 @@ enum class Square(i: Int = -1) {
 
     }
 
-    operator fun plus(up: Direction): ULong {
-        return Square.values()[value + up.value].value.toULong()
+    operator fun plus(up: Square): Square {
+        return Square.values()[value + up.value]
+
+
+
+
+    }
+
+    operator fun inc(): Square {
+        return Square.values()[value + 1]
 
     }
 
@@ -234,65 +238,6 @@ enum class Square(i: Int = -1) {
         else Coord(-1, -1)
     }
 }
-
-class newSquare(num: Int) {
-    // As a single number, 0 to 63, bottom to top, left to right.
-    // 0 is a1,8is a2,63 is h8.
-    var square_: Int = num
-
-
-    fun newSquare(num: Int): newSquare {
-        square_ = num
-        return this
-    }
-
-    fun newSquare(row: Int, col: Int) {
-//        square_[row * 8 + col]
-        square_ = row * 8 + col
-    }
-
-    //    BoardSquare(const std::string& str, bool black = false)
-//    : BoardSquare(black ? '8' - str[1] : str[1] - '1', str[0] - 'a') {} in kotlin
-    fun newSquare(str: String, black: Boolean = false): Int {
-        square_ = if (black) '8' - str[1] else str[1] - '1'
-        print(square_)
-        return square_
-    }
-
-
-    // 0-based, bottom to top.
-    val row: Int
-        get() = square_ / 8
-
-    // 0-based, left to right.
-    val col: Int
-        get() = square_ % 8
-
-    fun Mirror(): newSquare {
-        return newSquare(square_ xor 56)
-    }
-
-    init {
-        square_ = num
-        println("square_ = $square_")
-
-    }
-
-
-    // Returns the square in algebraic notation (e.g. "e4").
-
-    fun as_string(): String {
-        return "${('a' + col).toChar()}${('1' + row).toChar()}"
-    }
-}
-// Returns the square in coordinate notation (e.g. "e2").
-
-/*
-private operator fun Char.times(i: Int): Int {
-    return this * i
-}
-*/
-
 
 fun CastlingRights(c: Color, cr: CastlingRights): CastlingRights {
     //TODO check if this is correct
@@ -391,7 +336,7 @@ fun fileOf(s: Square): File {
 }
 
 fun rankOf(s: Square): Rank {
-    return Rank.values()[s.value shr 3];
+    return Rank.values()[s.value shr 3]
 
 }
 

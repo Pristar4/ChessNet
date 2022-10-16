@@ -74,15 +74,10 @@ class Uci {
                         //Todo add move to searchmoves
                     }
                 }
-                else if (token == "wtime"){}
+
 
             }
 //            Threads.startThinking(pos,states,limits,ponderMode)
-            var moveList = ExtMove()
-            var target: Bitboard = 0UL
-//            var moves = Movegen.generate(pos, moveList, target,GenType.QUIETS)
-//            println(moves.moveList)
-
         }
 
         fun loop(argv: Array<String>) {
@@ -112,10 +107,10 @@ class Uci {
                     cmd = "quit"
                 }
 
-                if (scanner.hasNextLine()) {
+                else if (scanner.hasNextLine()) {
                     scanner.useDelimiter(" ")
                     cmd = scanner.nextLine()
-                    val ss = Scanner(cmd)
+                    Scanner(cmd)
                 } else {
 
                     cmd = "quit"
@@ -130,28 +125,19 @@ class Uci {
 
 
                 if (token == "quit" || token == "stop") //TODO : Stop Threads
-                else if (token == "uci") {
-                    print("id name " + engineInfo(true) + "\n" + "uciok\n")
-                } else if (token == "go") {
-                    go(pos, ss, states)
-                } else if (token == "setoption") {
-                    TODO("setoption add later")
-                } else if (token == "position") {
-                    position(pos, ss, states)
-                } else if (token == "ucinewgame") {
-                    //Search::clear(); // After a new game our old search is not valid
-                } //Search.clear()
-                else if (token == "isready") {
-                    println("readyok")
-                } else if (token == "--help" || token == "help" || token == "-license") {
+                else if (token == "uci") print("id name " + engineInfo(true) + "\n" + "uciok\n")
+                else if (token == "go") go(pos, ss, states)
+                else if (token == "setoption") TODO("setoption add later")
+                else if (token == "position") position(pos, ss, states)
+                else if (token == "ucinewgame") //Search::clear(); // After a new game our old search is not valid
+                else if (token == "isready") println("readyok")
+                else if (token == "--help" || token == "help" || token == "-license") {
                     print(
                         "\n Chessnet is a uci chess engine written in Kotlin." + "\nIt is based on the Stockfish chess engine." + "\nIt is free and open source software distributed under the" + "\nGNU General Public License version 3." + "\nFor more information visit https://github.com/Pristar4/Chessnet" + "\nor read the README file.\n"
                     )
 
-                } else if (token == "d") {
-                    println(pos.toString())
-
-                } else if (token.isNotEmpty() && token[0] != '#') {
+                } else if (token == "d") println(pos)
+                else if (token.isNotEmpty() && token[0] != '#') {
                     println("Unknown command: $token")
                 }
 

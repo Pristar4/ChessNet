@@ -167,7 +167,6 @@ fun moreThanOne(b: Bitboard): Boolean {
 
 }
 
-fun oppositeColors() {}
 
 /*  rankBb() and fileBb() return a bitboard representing all the squares on the
  * given file or rank.

@@ -1,7 +1,5 @@
-package chessnet.thread
+package chessnet
 
-import chessnet.Position
-import chessnet.StateInfo
 import java.util.concurrent.atomic.AtomicBoolean
 
 class Thread {

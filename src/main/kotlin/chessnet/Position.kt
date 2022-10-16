@@ -34,7 +34,7 @@ class Position {
      *  just before the search starts). Needed by 'draw by repetition' detection.
      *  use deque because we need to be able to remove the last element
      */
-    public var StateList: Deque<StateInfo> = ArrayDeque<StateInfo>()
+    var StateList: Deque<StateInfo> = ArrayDeque<StateInfo>()
 
 
     // init() initializes at startup the various arrays used to compute hash keys
@@ -80,12 +80,11 @@ class Position {
                       6) Fullmove number. The number of the full move. It starts at 1, and is
                          incremented after Black's move.
                    */
-        var token: Char = ' '
-        var col: Int = 0
-        var row: Int = 0
-        var idx: ULong = 0UL
-        var sq: Square = SQ_A8
-        val ss: Scanner = Scanner(fenStr)
+        var token: Char
+        var col = 0
+        var row = 7 // 7 because we start at the top of the board
+        var sq: Square
+        val ss = Scanner(fenStr)
         ss.useDelimiter("")
 
         this.board = Array(SQUARE_NB.value) { NO_PIECE }
@@ -99,23 +98,24 @@ class Position {
                 col += token.toString()
                     .toInt() // Advance the given number of files
 
+
             } else if (token == '/') {
-                row++
+                row--
                 col = 0
 
             } else if (Piece.getPiece(token) != NO_PIECE) {
 
                 sq = makeSquare(File.values()[col], Rank.values()[row])
                 putPiece(Piece.getPiece(token), sq)
-                col++
+                ++col
             }
         }
 
 
         // 2. Active color
-        token = ss.next().single()  // Consume " "
+        ss.next().single()  // Consume " "
         token = ss.next().single() // Consume "w" or "b"
-        sideToMove = if (token == 'w') WHITE else Color.BLACK
+        sideToMove = if (token == 'w') WHITE else BLACK
         token = ss.next().single() // Consume "w" or "b"
 
         /** 3. Castling availability. Compatible with 3 standards: Normal FEN standard,
@@ -125,8 +125,8 @@ class Position {
         replaced by the file letter of the involved rook, as for the Shredder-FEN.*/
         while (ss.hasNext() && !ss.hasNext("\\s")) {
             var rsq: Square = SQ_NONE
-            val c: Color = if (token.isLowerCase()) Color.BLACK else WHITE
-            var rook: Piece = makePiece(c, PieceType.ROOK)
+            val c: Color = if (token.isLowerCase()) BLACK else WHITE
+            var rook: Piece = makePiece(c, ROOK)
             token = ss.next().single().uppercaseChar()
 
             //FIXME: Castling availability is broken
@@ -150,7 +150,7 @@ class Position {
         /** 4. En passant square.
          * Ignore if square is invalid or  not  on the side to move relative rank 6.
          */
-        var enpassant: Boolean = false
+        val enpassant = false
         //TODO: En passant square implementation
 
         if (!enpassant) st.epSquare = SQ_NONE
@@ -164,7 +164,7 @@ class Position {
          * Convert from fullmove starting from 1 to gamePly starting from 0,
          * handle also common incorrect FEN with fullmove = 0.
          */
-        var gamePlyRight = (if (sideToMove == Color.BLACK) 1 else 0)
+        val gamePlyRight = (if (sideToMove == BLACK) 1 else 0)
 
         gamePly = max(
             2 * (gamePly - 1), 0
@@ -219,7 +219,7 @@ class Position {
     }
 
     // Position representation
-    inline fun movedPiece(m: Move): Piece {
+    fun movedPiece(m: Move): Piece {
         return pieceOn(fromSq(m))
     }
 
@@ -406,8 +406,8 @@ class Position {
              * the captured pawn.
              */
             EN_PASSANT -> {
-                var capsq: Square = makeSquare(fileOf(to), rankOf(from))
-                var b: Bitboard =
+                val capsq: Square = makeSquare(fileOf(to), rankOf(from))
+                val b: Bitboard =
                     (pieces() xor squareBb(from) xor squareBb(capsq)) or SquareBB[to.value]
                 return (attacksBb(
                     ROOK,
@@ -427,8 +427,8 @@ class Position {
             else -> {
                 // Castling moves are encoded as 'king captures the rook'
                 //TODO: check if  the Squares for castling are correct
-                var ksq: Square = square(KING, sideToMove)
-                var rto: Square =
+                val ksq: Square = square(KING, sideToMove)
+                val rto: Square =
                     relativeSquare(sideToMove, if (to > from) SQ_F1 else SQ_D1)
 
                 //TODO: Check if the occupancy is correct
@@ -472,27 +472,27 @@ class Position {
         //TODO: Check if pliesfromnull is correct
         st.pliesFromNull = 0
 
-        var us: Color = sideToMove
-        var them = Color.values()[us.ordinal xor 1]
-        var from = fromSq(m)
+        val us: Color = sideToMove
+        val them = Color.values()[us.ordinal xor 1]
+        val from = fromSq(m)
 //        var to = toSq(m)
-        var to: Deque<Square> = ArrayDeque()
+        val to: Deque<Square> = ArrayDeque()
         to.add(toSq(m))
-        var pc = pieceOn(from)
-        var captured: Piece =
-            if (typeOf(m) == MoveType.EN_PASSANT) makePiece(
+        val pc = pieceOn(from)
+        val captured: Piece =
+            if (typeOf(m) == EN_PASSANT) makePiece(
                 them,
                 PAWN
             ) else pieceOn(to.first)
         assert(colorOf(pc) == us)
-        assert(captured == NO_PIECE || colorOf(captured) == (if (typeOf(m) != MoveType.CASTLING) them else us))
+        assert(captured == NO_PIECE || colorOf(captured) == (if (typeOf(m) != CASTLING) them else us))
         assert(typeOf(captured) != KING)
 
-        if (typeOf(m) == MoveType.CASTLING) {
+        if (typeOf(m) == CASTLING) {
             assert(pc == makePiece(us, KING))
             assert(captured == makePiece(us, ROOK))
-            var rfrom: Deque<Square> = ArrayDeque()
-            var rto: Deque<Square> = ArrayDeque()
+            val rfrom: Deque<Square> = ArrayDeque()
+            val rto: Deque<Square> = ArrayDeque()
 
             doCastling(us, from, to, rfrom, rto, true)
 
@@ -509,15 +509,15 @@ class Position {
         to: Deque<Square>,
         rfrom: Deque<Square>,
         rto: Deque<Square>,
-        Do: Boolean = false,
+        doIt: Boolean = false,
     ) {
-        var kingSide: Boolean = to.peek() > from
+        val kingSide: Boolean = to.peek() > from
         rfrom.add(to.first())
         rto.add(relativeSquare(us, if (kingSide) SQ_F1 else SQ_D1))
         to.add((relativeSquare(us, if (kingSide) SQ_F1 else SQ_D1)))
 
 
-        if (Do.equals(true)) {
+        if (doIt) {
             removePiece(from)
             removePiece(to.first())
             putPiece(makePiece(us, KING), to.first())

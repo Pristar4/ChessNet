@@ -1,7 +1,6 @@
 package chessnet
 
-import org.junit.jupiter.api.Assertions.*
-
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 internal class PositionTest {
@@ -14,7 +13,6 @@ internal class PositionTest {
         val pos = Position()
         states.add(StateInfo())
         pos.set(Uci.StartFEN, false, states.last())
-
         assertEquals(expected, pos.pieces())
 
 
@@ -31,7 +29,7 @@ internal class PositionTest {
         pos.set(Uci.StartFEN, false, states.last())
 
         // get the bitboard for the white rooks
-        val bb = pos.byColorBB[Color.WHITE.value] and pos.byTypeBB[PieceType.ROOK.value]
+        pos.byColorBB[Color.WHITE.value] and pos.byTypeBB[PieceType.ROOK.value]
         println(pos.byColorBB[Color.WHITE.value])
         println(Bitboards.pretty(pos.byColorBB[Color.WHITE.value]))
         // check if the bitboard is correct
@@ -40,7 +38,19 @@ internal class PositionTest {
 
     @Test
     fun putPieceOnPosition() {
+        Bitboards.init()
+        val pos = Position()
 
+        // create a bitboard with a single bit set
+        // put the white rook on the bitboard
+        pos.putPiece(Piece.W_ROOK, Square.SQ_A2)
+
+        // check if the bitboard is correct
+        println(pos)
+
+        val expected:Bitboard = 256UL
+        val actual = pos.byTypeBB[PieceType.ROOK.value]
+        assertEquals(expected, actual)
 
 
     }
