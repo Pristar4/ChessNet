@@ -7,6 +7,7 @@ import chessnet.Color.*
 // this File hold all type definitions
 typealias Bitboard = ULong
 
+
 typealias Key = ULong
 
 class Move(val value: Int = 0) {

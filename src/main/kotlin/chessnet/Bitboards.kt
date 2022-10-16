@@ -358,6 +358,8 @@ inline fun msb(b: Bitboard): Square {
 
 fun popLsb(b: Bitboard): Pair<Square, Bitboard> {
     //FIXME:  popLsb() is not working correctly (doesnt change the bitboard)
+
+
     assert(b != 0UL)
     val s: Square = lsb(b)
     _b = b and (b - 1u)

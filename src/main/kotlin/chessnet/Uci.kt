@@ -12,7 +12,8 @@ class Uci {
     }
 
     companion object {
-        const val StartFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+        const val StartFEN =
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
 
         private fun position(
@@ -21,11 +22,7 @@ class Uci {
             var m: Move
             var token: String = ""
             var fen: String
-
-
             token = scanner.next()
-
-//            println("token: $token")
 
             if (token == "startpos") {
                 fen = StartFEN
@@ -44,9 +41,8 @@ class Uci {
             } else return
 
 
-            /* states.clear() */ // Drop the old state and create a new one
             //FIXME: is this correct? adding a new state here?
-            states.clear()
+            states.clear()/* states.clear() */
             states.add(StateInfo())
             pos.set(fen, false, states.last)
 
@@ -78,18 +74,14 @@ class Uci {
                         //Todo add move to searchmoves
                     }
                 }
+                else if (token == "wtime"){}
 
             }
 //            Threads.startThinking(pos,states,limits,ponderMode)
-            //generate Pawn moves
-
-            val movesMoves = Movegen.generateMoves(pos, moveList = MoveList(),pos.pieces(),pos.sideToMove,PieceType.ROOK,false)
-            println("moves: ${movesMoves.moveList}")
-            println("moves: ${movesMoves.move}")
-            println("moves: ${movesMoves.value}")
-            println("moves: ${movesMoves.Move()}")
-
-
+            var moveList = ExtMove()
+            var target: Bitboard = 0UL
+            var moves = Movegen.generateMoves(pos,moveList,target,Color.WHITE,PieceType.ROOK,false)
+            println(moves.moveList)
 
         }
 
@@ -142,7 +134,8 @@ class Uci {
                     print("id name " + engineInfo(true) + "\n" + "uciok\n")
                 } else if (token == "go") {
                     go(pos, ss, states)
-                } else if (token == "setoption") { TODO("setoption add later")
+                } else if (token == "setoption") {
+                    TODO("setoption add later")
                 } else if (token == "position") {
                     position(pos, ss, states)
                 } else if (token == "ucinewgame") {
