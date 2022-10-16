@@ -59,7 +59,7 @@ class Uci {
         }
 
 
-        fun go(pos: Position, scanner: Scanner, states: ArrayDeque<StateInfo>) {
+        private fun go(pos: Position, scanner: Scanner, states: ArrayDeque<StateInfo>) {
 
 
             var token: String
@@ -80,8 +80,8 @@ class Uci {
 //            Threads.startThinking(pos,states,limits,ponderMode)
             var moveList = ExtMove()
             var target: Bitboard = 0UL
-            var moves = Movegen.generateMoves(pos,moveList,target,Color.WHITE,PieceType.ROOK,false)
-            println(moves.moveList)
+//            var moves = Movegen.generate(pos, moveList, target,GenType.QUIETS)
+//            println(moves.moveList)
 
         }
 
@@ -150,7 +150,6 @@ class Uci {
 
                 } else if (token == "d") {
                     println(pos.toString())
-
 
                 } else if (token.isNotEmpty() && token[0] != '#') {
                     println("Unknown command: $token")

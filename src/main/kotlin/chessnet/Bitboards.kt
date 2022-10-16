@@ -60,35 +60,22 @@ class Bitboards {
             * to be printed to standard output. Useful for debugging.
             */
         fun pretty(b: Bitboard): String {
+            println(b)
             println("pretty")
             var s = "+---+---+---+---+---+---+---+---+\n"
-            for (r in 7 downTo 0) {
-                for (f in 0..7) {
-                    s+= if(b and SquareBB[Square.values()[r * 8 + f].value] == 0uL) "|   " else "| X "
-
-
+            for (r in Rank.RANK_8.value downTo Rank.RANK_1.value) {
+                for (f in File.FILE_A.value..File.FILE_H.value) {
+                    s += if (b and SquareBB[makeSquare(f,r).value] != 0UL) "| X " else "|   "
                 }
-                s+= "| " + (r + 1) + "\n+---+---+---+---+---+---+---+---+\n"
-
+                s += "|\n+---+---+---+---+---+---+---+---+\n"
             }
+
             s += "  a   b   c   d   e   f   g   h\n"
             return s
-
         }
-
     }
-
-
 }
 
-
-var _b: Bitboard = 0UL
-    get() {
-        return field
-    }
-    set(value) {
-        field = value
-    }
 const val ALL_SQUARES: Bitboard = ULong.MAX_VALUE
 const val DARK_SQUARES: Bitboard = 0xAA55AA55AA55AA55UL
 const val FileABB: Bitboard = 0x0101010101010101UL
@@ -119,15 +106,19 @@ val Center: Bitboard = (FileDBB or FileEBB) and (Rank4BB or Rank5BB)
 val PopCnt16: Array<UByte> = Array(65536) { 0U }
 
 
-val SquareDistance: Array<Array<UByte>> = Array(SQUARE_NB.value) { Array(SQUARE_NB.value) { 0U } }
+val SquareDistance: Array<Array<UByte>> =
+    Array(SQUARE_NB.value) { Array(SQUARE_NB.value) { 0U } }
 
 
 val SquareBB: Array<Bitboard> = Array(SQUARE_NB.value) { 0UL }
-val BetweenBB: Array<Array<Bitboard>> = Array(SQUARE_NB.value) { Array(SQUARE_NB.value) { 0UL } }
-val LineBB: Array<Array<Bitboard>> = Array(SQUARE_NB.value) { Array(SQUARE_NB.value) { 0UL } }
+val BetweenBB: Array<Array<Bitboard>> =
+    Array(SQUARE_NB.value) { Array(SQUARE_NB.value) { 0UL } }
+val LineBB: Array<Array<Bitboard>> =
+    Array(SQUARE_NB.value) { Array(SQUARE_NB.value) { 0UL } }
 val PseudoAttacks: Array<Array<Bitboard>> =
     Array(PIECE_TYPE_NB.value) { Array(SQUARE_NB.value) { 0UL } }
-val PawnAttacks: Array<Array<Bitboard>> = Array(COLOR_NB.value) { Array(SQUARE_NB.value) { 0UL } }
+val PawnAttacks: Array<Array<Bitboard>> =
+    Array(COLOR_NB.value) { Array(SQUARE_NB.value) { 0UL } }
 
 class Magic(
     val mask: Bitboard,
@@ -142,8 +133,10 @@ class Magic(
     }
 }
 
-val RookMagics: Array<Magic> = Array(SQUARE_NB.value) { Magic(0UL, 0UL, Array(4096) { 0UL }, 0) }
-val BishopMagics: Array<Magic> = Array(SQUARE_NB.value) { Magic(0UL, 0UL, Array(512) { 0UL }, 0) }
+val RookMagics: Array<Magic> =
+    Array(SQUARE_NB.value) { Magic(0UL, 0UL, Array(4096) { 0UL }, 0) }
+val BishopMagics: Array<Magic> =
+    Array(SQUARE_NB.value) { Magic(0UL, 0UL, Array(512) { 0UL }, 0) }
 
 
 /// distance() functions return the distance between x and y, defined as the
@@ -286,7 +279,10 @@ fun attacksBb(
     s1: Square, occupied: Bitboard,
 ): Bitboard {
     return when (Pt) {
-        BISHOP -> BishopMagics[s1.value].attacks[BishopMagics[s1.value].index(occupied)]
+        BISHOP -> BishopMagics[s1.value].attacks[BishopMagics[s1.value].index(
+            occupied
+        )]
+
         ROOK -> RookMagics[s1.value].attacks[RookMagics[s1.value].index(occupied)]
         QUEEN -> {
 
@@ -339,7 +335,7 @@ fun safeDestination(s: Int, step: Int): Bitboard {
 }
 
 
-inline fun lsb(b: Bitboard): Square {
+fun lsb(b: Bitboard): Square {
     assert(b != 0UL)
     val idx: Int = BitScanForward(b)
 
@@ -350,22 +346,18 @@ inline fun lsb(b: Bitboard): Square {
 }
 
 
-inline fun msb(b: Bitboard): Square {
+fun msb(b: Bitboard): Square {
     assert(b != 0UL)
     val idx: Int = BitScanReverse(b)
     return Square.getSquare(idx)
 }
 
-fun popLsb(b: Bitboard): Pair<Square, Bitboard> {
+fun popLsb(bitBoardObject: BitboardObject): Square {
     //FIXME:  popLsb() is not working correctly (doesnt change the bitboard)
-
-
-    assert(b != 0UL)
-    val s: Square = lsb(b)
-    _b = b and (b - 1u)
-    return Pair(s, _b)
-
-
+    assert(bitBoardObject.bb != 0UL)
+    val s: Square = lsb(bitBoardObject.bb)
+    bitBoardObject.bb = bitBoardObject.bb and (bitBoardObject.bb - 1u)
+    return s
 }
 
 fun BitScanForward(b: Bitboard): Int {

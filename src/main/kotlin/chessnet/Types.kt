@@ -2,10 +2,12 @@ package chessnet
 
 import chessnet.Square.*
 import chessnet.Color.*
+import java.util.BitSet
 
 
 // this File hold all type definitions
 typealias Bitboard = ULong
+class BitboardObject(public var bb: Bitboard)
 
 
 typealias Key = ULong
@@ -371,7 +373,9 @@ fun operatorPlus(s: Square, d: Direction): Square {
 fun operatorMinus(s: Square, d: Direction): Square {
     return Square.getSquare(s.ordinal - d.value)
 }
-
+fun makeSquare(f: Int, r: Int): Square {
+    return Square.getSquare((r shl 3)+f )
+}
 
 fun isOk(s: Square): Boolean {
     return s in SQ_A1..SQ_H8

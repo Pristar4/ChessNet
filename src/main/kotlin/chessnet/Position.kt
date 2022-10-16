@@ -180,7 +180,6 @@ class Position {
 
         return this
 
-
     }
 
 
@@ -199,7 +198,7 @@ class Position {
         var r = Rank.RANK_8.value
         var piece: Piece
         s += " +---+---+---+---+---+---+---+---+\n"
-        for (r_ in Rank.RANK_1.value..Rank.RANK_8.value) {
+        for (r_ in Rank.RANK_8.value downTo  Rank.RANK_1.value) {
             for (f_ in File.FILE_A.value..File.FILE_H.value) {
                 piece =
                     pieceOn(makeSquare(File.values()[f_], Rank.values()[r_]))
@@ -344,10 +343,12 @@ class Position {
 
     }
 
-    private fun putPiece(piece: Piece, s: Square) {
+     fun putPiece(piece: Piece, s: Square) {
         board[s.ordinal] = piece
         byTypeBB[ALL_PIECES.value] =
-            byTypeBB[typeOf(piece).value] or squareBb(s)
+            byTypeBB[ALL_PIECES.value] or (1uL shl s.ordinal)
+        byTypeBB[typeOf(piece).value] =
+            byTypeBB[typeOf(piece).value] or (1uL shl s.ordinal)
         byColorBB[colorOf(piece).value] =
             byColorBB[colorOf(piece).value] or squareBb(s)
         pieceCount[piece.value]++
