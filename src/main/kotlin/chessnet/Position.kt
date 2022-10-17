@@ -9,39 +9,52 @@ import chessnet.MoveType.*
 import java.util.*
 import kotlin.math.max
 
+/**  A list to keep track of the position states along the setup moves( from the start position to the position
+ *  just before the search starts). Needed by 'draw by repetition' detection.
+ *  use deque because we need to be able to remove the last element
+ */
+var StateList: Deque<StateInfo> = ArrayDeque<StateInfo>()
 
+/**
+ * The Position class stores information about the board representation, hash keys, castling rights,
+ * en-passant square, rule 50 counter, and the side to move. It also holds a list of the positions
+ * along the setup moves (from the start position to the position just before the search starts).
+ * @param fen the FEN string representing the position
+ * @param isChess960 whether the position is in Chess960 mode
+ * @param si the state information
+ */
 class Position {
-
-    // Data members
-    var board: Array<Piece> = Array(SQUARE_NB.value) { NO_PIECE }
-    var byTypeBB: Array<Bitboard> = Array(PIECE_TYPE_NB.value) { 0UL }
-    var byColorBB: Array<Bitboard> = Array(COLOR_NB.value) { 0UL }
-    var pieceCount: Array<Int> = Array(PIECE_NB.value) { 0 }
-    var castlingRightsMask: Array<Int> = Array(SQUARE_NB.value) { 0 }
-    var castlingRookSquare: Array<Square> =
-        Array(CASTLING_RIGHT_NB.value) { SQ_A1 }
-    var castlingPath: Array<Bitboard> = Array(CASTLING_RIGHT_NB.value) { 0UL }
-    var thisThread: Thread? = null
-    private var st: StateInfo = StateInfo()
-    var gamePly: Int = 0
-    var sideToMove: Color = WHITE
-    var psq: Score = Score.SCORE_ZERO
-
-    //    var psq: Score
-    var chess960: Boolean = false
-
-    /**  A list to keep track of the position states along the setup moves( from the start position to the position
-     *  just before the search starts). Needed by 'draw by repetition' detection.
-     *  use deque because we need to be able to remove the last element
-     */
-    var StateList: Deque<StateInfo> = ArrayDeque<StateInfo>()
-
-
-    // init() initializes at startup the various arrays used to compute hash keys
-    fun init() {
-        TODO("not implemented")
+    // returns an ASCII representation of the position
+    override fun toString(): String {
+        var s = ""
+        var f = File.FILE_A.value
+        var r = Rank.RANK_8.value
+        var piece: Piece
+        s += " +---+---+---+---+---+---+---+---+\n"
+        for (r_ in Rank.RANK_8.value downTo Rank.RANK_1.value) {
+            for (f_ in File.FILE_A.value..File.FILE_H.value) {
+                piece = pieceOn(makeSquare(File.values()[f_], Rank.values()[r_]))
+                s += " | " + if (piece == NO_PIECE) "." else "$piece"
+                f++
+                s += if (f > File.FILE_H.value) " |" else ""
+            }
+            s += "\n +---+---+---+---+---+---+---+---+\n"
+            f = 0
+            r--
+        }
+        s += "sideToMove: $sideToMove\n"
+        s += "castlingRights: ${st.castlingRights}\n"
+        s += "epSquare: ${st.epSquare}\n"
+        s += "gamePly: $gamePly\n"
+        s += "psq: $psq\n"
+        return s
     }
 
+    fun init() {
+        TODO()
+    }
+
+    // FEN string input/output
     /**  [set] () initializes the position object with the given FEN string.
      *  This function is not very robust - make sure that input FENs are correct,
      *  this is assumed to be the responsibility of the GUI.
@@ -95,8 +108,7 @@ class Position {
         while (ss.hasNext() && !ss.hasNext("\\s")) {
             token = ss.next().single()
             if (token.isDigit()) {
-                col += token.toString()
-                    .toInt() // Advance the given number of files
+                col += token.toString().toInt() // Advance the given number of files
 
 
             } else if (token == '/') {
@@ -172,133 +184,239 @@ class Position {
         //TODO: check if this gamePly number is correct
 
         chess960 = isChess960
-        thisThread = Thread.currentThread()
+//        thisThread = Thread.currentThread()
         //thisThread = th
-        set_state(st)
+        setState(st)
 
         assert(posIsOk())
 
         return this
 
     }
-
-
-    /* setCastlingRights() updates the castling rights given the position of the
-     * rooks and the king. This is called at startup and after a king or rook move.
-     */
-    fun setCastlingRight(c: Color, rfrom: Deque<Square>) {
-        TODO("Not yet implemented")
-
-    }
-
-    // returns an ASCII representation of the position
-    override fun toString(): String {
-        var s = ""
-        var f = File.FILE_A.value
-        var r = Rank.RANK_8.value
-        var piece: Piece
-        s += " +---+---+---+---+---+---+---+---+\n"
-        for (r_ in Rank.RANK_8.value downTo  Rank.RANK_1.value) {
-            for (f_ in File.FILE_A.value..File.FILE_H.value) {
-                piece =
-                    pieceOn(makeSquare(File.values()[f_], Rank.values()[r_]))
-                s += " | " + if (piece == NO_PIECE) "." else "$piece"
-                f++
-                s += if (f > File.FILE_H.value) " |" else ""
-            }
-            s += "\n +---+---+---+---+---+---+---+---+\n"
-            f = 0
-            r--
-        }
-        s += "sideToMove: $sideToMove\n"
-        s += "castlingRights: ${st.castlingRights}\n"
-        s += "epSquare: ${st.epSquare}\n"
-        s += "gamePly: $gamePly\n"
-        s += "psq: $psq\n"
-        return s
-    }
+    fun fen() {}
 
     // Position representation
-    fun movedPiece(m: Move): Piece {
-        return pieceOn(fromSq(m))
-    }
-
     fun pieces(pt: PieceType = ALL_PIECES): Bitboard {
         return byTypeBB[pt.value]
     }
-
     fun pieces(pt1: PieceType, pt2: PieceType): Bitboard {
         return pieces(pt1) or pieces(pt2)
     }
-
     fun pieces(c: Color): Bitboard {
         return byColorBB[c.value]
     }
-
     fun pieces(c: Color, pt: PieceType): Bitboard {
         return pieces(c) and pieces(pt)
     }
-
     fun pieces(c: Color, pt1: PieceType, pt2: PieceType): Bitboard {
         return pieces(c) and (pieces(pt1) or pieces(pt2))
     }
-
     fun pieces(pt1: PieceType, pt2: PieceType, pt3: PieceType): Bitboard {
         return pieces(pt1) or pieces(pt2) or pieces(pt3)
     }
-
-
-    fun count(c: Color, pt: PieceType): Int {
-        return pieceCount[makePiece(c, pt).value]
-    }
-
-    private fun pieceCount(c: Color, pt: PieceType): Int {
-        assert(count(c, pt) >= 0)
-
-        return lsb(pieces(c, pt))
-
-    }
-
-    private fun lsb(pieces: Bitboard): Int {
-        return pieces.countTrailingZeroBits()
-    }
-
-
     fun pieceOn(s: Square): Piece {
         assert(isOk(s))
         return board[s.value]
     }
-
     fun epSquare(): Square {
         return st.epSquare
     }
+    fun count(c: Color, pt: PieceType): Int {
+        return pieceCount[makePiece(c, pt).value]
+    }
+    fun square(pt: PieceType, c: Color): Square {
+        assert(count(c, pt) == 1)
+        return lsb(pieces(c, pt))
+    }
 
-    fun checkers(): Bitboard {
-        return st.checkersBB
+    //Castling
+    fun canCastle(cr: Int): Boolean {
+        return st.castlingRights and cr != 0
+    }
+    fun castlingImpeded(cr: CastlingRights): Boolean {
+        assert(cr == WHITE_OO || cr == WHITE_OOO || cr == BLACK_OO || cr == BLACK_OOO)
+
+        return pieces() and castlingPath[cr.value] != 0UL
+
+    }
+    fun castlingRookSquare(cr: CastlingRights): Square {
+        assert(cr == WHITE_OO || cr == WHITE_OOO || cr == BLACK_OO || cr == BLACK_OOO)
+
+        return castlingRookSquare[cr.value]
+
 
     }
 
+    //Checking
     fun blockersForKing(c: Color): Bitboard {
 
         return st.blockersForKing[c.value]
     }
-
-
-    private fun checkSquares(pt: PieceType): Bitboard {
+    fun checkSquares(pt: PieceType): Bitboard {
 
         return st.checkSquares[pt.value]
 
 
     }
+    fun checkers(): Bitboard {
+        return st.checkersBB
+
+    }
+
+    // Attacks to/from a given square
+
+    // Properties of moves
+    fun givesCheck(m: Move): Boolean {
+        assert(isOk(m))
+        assert(colorOf(movedPiece(m)) == sideToMove)
+
+        val from: Square = fromSq(m)
+        val to: Square = toSq(m)
+
+        // Is there a direct check?
+        //TODO:  check if SquareBB[to.value] is correct
+        if ((checkSquares(typeOf(pieceOn(from))) and SquareBB[to.value]) != 0UL) return true
+
+        //Is there a discovered check?
+        if ((blockersForKing(sideToMove) and SquareBB[from.value] != 0UL) && !aligned(
+                from, to, square(KING, sideToMove)
+            )
+        ) return when (typeOf(m)) {
+            NORMAL -> false
+            PROMOTION -> attacksBb(
+                to, pieces() xor SquareBB[from.value], promotionType(m)
+            ) and SquareBB[square(KING, sideToMove).value] != 0UL
+
+            /* En passant capture with check? We have already handled the case
+             * of direct checks and ordinary discovered check, so the only case we
+             * need to handle is the unusual case of a discovered check through
+             * the captured pawn.
+             */
+            EN_PASSANT -> {
+                val capsq: Square = makeSquare(fileOf(to), rankOf(from))
+                val b: Bitboard = (pieces() xor squareBb(from) xor squareBb(capsq)) or SquareBB[to.value]
+                return (attacksBb(
+
+                    square(KING, sideToMove), b, ROOK
+                ) and (pieces(
+                    sideToMove, QUEEN, ROOK
+                ) or (attacksBb(
+
+                    square(KING, sideToMove), b, BISHOP
+                ) and (pieces(
+                    sideToMove, QUEEN, BISHOP
+                ))))) != 0UL
+            }
+            //CASTLING
+            else -> {
+                // Castling moves are encoded as 'king captures the rook'
+                //TODO: check if  the Squares for castling are correct
+                val ksq: Square = square(KING, sideToMove)
+                val rto: Square = relativeSquare(sideToMove, if (to > from) SQ_F1 else SQ_D1)
+
+                //TODO: Check if the occupancy is correct
+                return (attacksBb(
+                    rto, pieces() xor squareBb(ksq) xor squareBb(rto), ROOK
+                ) and SquareBB[ksq.value] != 0UL)
+            }
+        }
+        return false
+    }
+    fun movedPiece(m: Move): Piece {
+        return pieceOn(fromSq(m))
+    }
+
+    // Piece specific
+
+    // Doing and undoing moves
+    fun doMove(m: Move, newSt: StateInfo) {
+        doMove(m, newSt, givesCheck(m))
+
+    }
+    fun doMove(m: Move, newSt: StateInfo, givesCheck: Boolean) {
+        assert(isOk(m))
+        assert(newSt != st)
+        //TODO
+        // Key k = st->key ^ Zobrist::side;
+
+        /* Copy some fields of the old state to our new StateInfo object except the
+         * ones which are going to be recalculated from scratch anyway and then switch
+         * our state pointer to point to the new (ready to be updated) state.
+         * */
+        newSt.previous = st
+        st = newSt/* Increment ply counters. In particular, rule50 will be reset to zero later on
+         * in case of capture or pawn move.
+         */
+        gamePly++
+        st.rule50++
+
+        //TODO: Check if pliesfromnull is correct
+        st.pliesFromNull = 0
+
+        val us: Color = sideToMove
+        val them = Color.values()[us.ordinal xor 1]
+        val from = fromSq(m)
+//        var to = toSq(m)
+        val to: Deque<Square> = ArrayDeque()
+        to.add(toSq(m))
+        val pc = pieceOn(from)
+        val captured: Piece = if (typeOf(m) == EN_PASSANT) makePiece(
+            them, PAWN
+        ) else pieceOn(to.first)
+        assert(colorOf(pc) == us)
+        assert(captured == NO_PIECE || colorOf(captured) == (if (typeOf(m) != CASTLING) them else us))
+        assert(typeOf(captured) != KING)
+
+        if (typeOf(m) == CASTLING) {
+            assert(pc == makePiece(us, KING))
+            assert(captured == makePiece(us, ROOK))
+            val rfrom: Deque<Square> = ArrayDeque()
+            val rto: Deque<Square> = ArrayDeque()
+
+            doCastling(us, from, to, rfrom, rto, true)
 
 
-    private fun setCheckInfo(si: StateInfo) {
-        //TODO: setCheckInfo implementation
+        }
 
 
     }
 
-    private fun set_state(si: StateInfo) {
+    // Static Exchange Evaluation
+
+    // Accessing hash keys
+
+    // Other properties of the position
+
+    // Position consistency check, for debugging
+    fun posIsOk(): Boolean {
+        //TODO: posIsOk implementation
+        return true
+    }
+
+
+    // Used by NNUE
+    fun putPiece(piece: Piece, s: Square) {
+        board[s.ordinal] = piece
+        byTypeBB[ALL_PIECES.value] = byTypeBB[ALL_PIECES.value] or (1uL shl s.ordinal)
+        byTypeBB[typeOf(piece).value] = byTypeBB[typeOf(piece).value] or (1uL shl s.ordinal)
+        byColorBB[colorOf(piece).value] = byColorBB[colorOf(piece).value] or squareBb(s)
+        pieceCount[piece.value]++
+        pieceCount[makePiece(colorOf(piece), ALL_PIECES).value]++
+        //FIXME: psq does not work
+//        psq = psq + psq[piece.value][s.ordinal]
+    }
+    private fun removePiece(s: Square) {
+        var pc: Piece = board[s.ordinal]
+        byTypeBB[ALL_PIECES.value] = byTypeBB[ALL_PIECES.value] xor squareBb(s)
+        byTypeBB[typeOf(pc).value] = byTypeBB[typeOf(pc).value] xor squareBb(s)
+        byColorBB[colorOf(pc).value] = byColorBB[colorOf(pc).value] xor squareBb(s)
+        board[s.ordinal] = NO_PIECE
+        pieceCount[pc.value]--
+        pieceCount[makePiece(colorOf(pc), ALL_PIECES).value]--
+    }
+
+    // Initialization helpers (used while setting up a position)
+    private fun setState(si: StateInfo) {
         si.key = 0u
         si.materialKey = 0u
 //        si.pawnKey = Zobrist.noPawns
@@ -337,180 +455,8 @@ class Position {
 
     }
 
-
-    private fun makeSquare(file: File, rank: Rank): Square {
-        return Square.getSquare(file.ordinal + rank.ordinal * BOARD_SIZE)
-
-    }
-
-     fun putPiece(piece: Piece, s: Square) {
-        board[s.ordinal] = piece
-        byTypeBB[ALL_PIECES.value] =
-            byTypeBB[ALL_PIECES.value] or (1uL shl s.ordinal)
-        byTypeBB[typeOf(piece).value] =
-            byTypeBB[typeOf(piece).value] or (1uL shl s.ordinal)
-        byColorBB[colorOf(piece).value] =
-            byColorBB[colorOf(piece).value] or squareBb(s)
-        pieceCount[piece.value]++
-        pieceCount[makePiece(colorOf(piece), ALL_PIECES).value]++
-        //FIXME: psq does not work
-//        psq = psq + psq[piece.value][s.ordinal]
-    }
-
-    private fun removePiece(s: Square) {
-        var pc: Piece = board[s.ordinal]
-        byTypeBB[ALL_PIECES.value] = byTypeBB[ALL_PIECES.value] xor squareBb(s)
-        byTypeBB[typeOf(pc).value] = byTypeBB[typeOf(pc).value] xor squareBb(s)
-        byColorBB[colorOf(pc).value] =
-            byColorBB[colorOf(pc).value] xor squareBb(s)
-        board[s.ordinal] = NO_PIECE
-        pieceCount[pc.value]--
-        pieceCount[makePiece(colorOf(pc), ALL_PIECES).value]--
-    }
-
-    private fun posIsOk(): Boolean {
-        //TODO: posIsOk implementation
-        return true
-    }
-
-    fun doMove(m: Move, newSt: StateInfo) {
-        doMove(m, newSt, givesCheck(m))
-
-    }
-
-
-    fun givesCheck(m: Move): Boolean {
-        assert(isOk(m))
-        assert(colorOf(movedPiece(m)) == sideToMove)
-
-        val from: Square = fromSq(m)
-        val to: Square = toSq(m)
-
-        // Is there a direct check?
-        //TODO:  check if SquareBB[to.value] is correct
-        if ((checkSquares(typeOf(pieceOn(from))) and SquareBB[to.value]) != 0UL) return true
-
-        //Is there a discovered check?
-        if ((blockersForKing(sideToMove) and SquareBB[from.value] != 0UL) && !aligned(
-                from, to, square(KING, sideToMove)
-            )
-        ) return when (typeOf(m)) {
-            NORMAL -> false
-            PROMOTION -> attacksBb(
-                promotionType(m), to, pieces() xor SquareBB[from.value]
-            ) and SquareBB[square(KING, sideToMove).value] != 0UL
-
-            /* En passant capture with check? We have already handled the case
-             * of direct checks and ordinary discovered check, so the only case we
-             * need to handle is the unusual case of a discovered check through
-             * the captured pawn.
-             */
-            EN_PASSANT -> {
-                val capsq: Square = makeSquare(fileOf(to), rankOf(from))
-                val b: Bitboard =
-                    (pieces() xor squareBb(from) xor squareBb(capsq)) or SquareBB[to.value]
-                return (attacksBb(
-                    ROOK,
-                    square(KING, sideToMove),
-                    b
-                ) and (pieces(
-                    sideToMove, QUEEN, ROOK
-                ) or (attacksBb(
-                    BISHOP,
-                    square(KING, sideToMove),
-                    b
-                ) and (pieces(
-                    sideToMove, QUEEN, BISHOP
-                ))))) != 0UL
-            }
-            //CASTLING
-            else -> {
-                // Castling moves are encoded as 'king captures the rook'
-                //TODO: check if  the Squares for castling are correct
-                val ksq: Square = square(KING, sideToMove)
-                val rto: Square =
-                    relativeSquare(sideToMove, if (to > from) SQ_F1 else SQ_D1)
-
-                //TODO: Check if the occupancy is correct
-                return (attacksBb(
-                    ROOK, rto, pieces() xor squareBb(ksq) xor squareBb(rto)
-                ) and SquareBB[ksq.value] != 0UL)
-            }
-        }
-        return false
-    }
-
-    private fun promotionType(m: Move): PieceType {
-        TODO("Not yet implemented")
-    }
-
-    fun square(pt: PieceType, sideToMove: Color): Square {
-        assert(count(sideToMove, pt) == 1)
-
-        return Square.values()[lsb(pieces(sideToMove, pt))]
-
-    }
-
-
-    fun doMove(m: Move, newSt: StateInfo, givesCheck: Boolean) {
-        assert(isOk(m))
-        assert(newSt != st)
-        //TODO
-        // Key k = st->key ^ Zobrist::side;
-
-        /* Copy some fields of the old state to our new StateInfo object except the
-         * ones which are going to be recalculated from scratch anyway and then switch
-         * our state pointer to point to the new (ready to be updated) state.
-         * */
-        newSt.previous = st
-        st = newSt/* Increment ply counters. In particular, rule50 will be reset to zero later on
-         * in case of capture or pawn move.
-         */
-        gamePly++
-        st.rule50++
-
-        //TODO: Check if pliesfromnull is correct
-        st.pliesFromNull = 0
-
-        val us: Color = sideToMove
-        val them = Color.values()[us.ordinal xor 1]
-        val from = fromSq(m)
-//        var to = toSq(m)
-        val to: Deque<Square> = ArrayDeque()
-        to.add(toSq(m))
-        val pc = pieceOn(from)
-        val captured: Piece =
-            if (typeOf(m) == EN_PASSANT) makePiece(
-                them,
-                PAWN
-            ) else pieceOn(to.first)
-        assert(colorOf(pc) == us)
-        assert(captured == NO_PIECE || colorOf(captured) == (if (typeOf(m) != CASTLING) them else us))
-        assert(typeOf(captured) != KING)
-
-        if (typeOf(m) == CASTLING) {
-            assert(pc == makePiece(us, KING))
-            assert(captured == makePiece(us, ROOK))
-            val rfrom: Deque<Square> = ArrayDeque()
-            val rto: Deque<Square> = ArrayDeque()
-
-            doCastling(us, from, to, rfrom, rto, true)
-
-
-        }
-
-
-    }
-
-
-    private fun doCastling(
-        us: Color,
-        from: Square,
-        to: Deque<Square>,
-        rfrom: Deque<Square>,
-        rto: Deque<Square>,
-        doIt: Boolean = false,
-    ) {
+    // Other helpers
+    private fun doCastling(us: Color,from: Square,to: Deque<Square>,rfrom: Deque<Square>,rto: Deque<Square>,doIt: Boolean = false) {
         val kingSide: Boolean = to.peek() > from
         rfrom.add(to.first())
         rto.add(relativeSquare(us, if (kingSide) SQ_F1 else SQ_D1))
@@ -526,26 +472,20 @@ class Position {
 
     }
 
-    fun canCastle(cr: Int): Boolean {
-        return st.castlingRights and cr != 0
-    }
-
-    fun castlingImpeded(cr: CastlingRights): Boolean {
-        assert(cr == WHITE_OO || cr == WHITE_OOO || cr == BLACK_OO || cr == BLACK_OOO)
-
-        return pieces() and castlingPath[cr.value] != 0UL
-
-    }
-
-    fun castlingRookSquare(cr: CastlingRights): Square {
-        assert(cr == WHITE_OO || cr == WHITE_OOO || cr == BLACK_OO || cr == BLACK_OOO)
-
-        return castlingRookSquare[cr.value]
-
-
-    }
-
-
+    // Data members
+    var board: Array<Piece> = Array(SQUARE_NB.value) { NO_PIECE }
+    var byTypeBB: Array<Bitboard> = Array(PIECE_TYPE_NB.value) { 0UL }
+    var byColorBB: Array<Bitboard> = Array(COLOR_NB.value) { 0UL }
+    var pieceCount: Array<Int> = Array(PIECE_NB.value) { 0 }
+    var castlingRightsMask: Array<Int> = Array(SQUARE_NB.value) { 0 }
+    var castlingRookSquare: Array<Square> = Array(CASTLING_RIGHT_NB.value) { SQ_A1 }
+    var castlingPath: Array<Bitboard> = Array(CASTLING_RIGHT_NB.value) { 0UL }
+    var thisThread: Thread? = null
+    private var st: StateInfo = StateInfo()
+    var gamePly: Int = 0
+    var sideToMove: Color = WHITE
+    var psq: Score = Score.SCORE_ZERO
+    var chess960: Boolean = false
 }
 
 

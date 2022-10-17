@@ -65,7 +65,7 @@ class Bitboards {
             var s = "+---+---+---+---+---+---+---+---+\n"
             for (r in Rank.RANK_8.value downTo Rank.RANK_1.value) {
                 for (f in File.FILE_A.value..File.FILE_H.value) {
-                    s += if (b and SquareBB[makeSquare(f,r).value] != 0UL) "| X " else "|   "
+                    s += if (b and SquareBB[makeSquare(f, r).value] != 0UL) "| X " else "|   "
                 }
                 s += "|\n+---+---+---+---+---+---+---+---+\n"
             }
@@ -128,9 +128,14 @@ class Magic(
 ) {
     fun index(occupied: Bitboard): Int {
         //TODO: check if this is correct
-        return ((occupied and mask) * magic ushr shift).toInt()
+
+        return ((occupied * magic) ushr shift).toInt()
 
     }
+}
+
+private fun Any.toInt(): Int {
+    return this as Int
 }
 
 val RookMagics: Array<Magic> =
@@ -274,21 +279,21 @@ fun attacksBb(Pt: PieceType, s: Square): Bitboard {
 // function that returns the pseudo attacks of the give piece type
 
 fun attacksBb(
-    Pt: PieceType,
-    s1: Square, occupied: Bitboard,
+    s: Square, occupied: Bitboard,
+    pt: PieceType
 ): Bitboard {
-    return when (Pt) {
-        BISHOP -> BishopMagics[s1.value].attacks[BishopMagics[s1.value].index(
+    return when (pt) {
+        BISHOP -> BishopMagics[s.value].attacks[BishopMagics[s.value].index(
             occupied
         )]
 
-        ROOK -> RookMagics[s1.value].attacks[RookMagics[s1.value].index(occupied)]
+        ROOK -> RookMagics[s.value].attacks[RookMagics[s.value].index(occupied)]
         QUEEN -> {
 
-            attacksBb(BISHOP, s1, occupied) or attacksBb(ROOK, s1, occupied)
+            attacksBb(s, occupied, BISHOP) or attacksBb(s, occupied, ROOK)
         }
 
-        else -> PseudoAttacks[Pt.value][s1.value]
+        else -> PseudoAttacks[pt.value][s.value]
     }
 
 }
@@ -308,18 +313,20 @@ fun bishopAttacksBb(s: Square, occupied: Bitboard): Bitboard {
 
 }
 
-private fun Any.toInt(): Int {
-    return this as Int
-
-}
-
 private infix fun Any.ushr(shift: Int): Any {
     return when (this) {
-        is Int -> this ushr shift
+        is ULong -> this ushr shift
         is Long -> this ushr shift
+        is UInt -> this ushr shift
+        is Int -> this ushr shift
+        is UShort -> this ushr shift
+        is Short -> this ushr shift
+        is UByte -> this ushr shift
+        is Byte -> this ushr shift
         else -> throw Exception("Unknown type")
     }
 }
+
 
 // TODO: check if this should be here or in companion object
 fun safeDestination(s: Int, step: Int): Bitboard {

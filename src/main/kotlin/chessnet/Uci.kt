@@ -1,8 +1,10 @@
 package chessnet
 
-import chessnet.movegen.*
+//import chessnet.Movegen.*
 
 
+import chessnet.search.LimitsType
+import chessnet.thread.Threads
 import java.util.*
 
 class Uci {
@@ -63,7 +65,7 @@ class Uci {
 
 
             var token: String
-            var pondermode: Boolean = false
+            val ponderMode: Boolean = false
 
             while (scanner.hasNext()) {
                 token = scanner.next()
@@ -77,7 +79,8 @@ class Uci {
 
 
             }
-//            Threads.startThinking(pos,states,limits,ponderMode)
+            val limits:LimitsType = LimitsType()
+            Threads.startThinking(pos,states,limits,ponderMode)
         }
 
         fun loop(argv: Array<String>) {
@@ -105,9 +108,7 @@ class Uci {
             do {
                 if (argc == 0 && !scanner.hasNextLine()) {
                     cmd = "quit"
-                }
-
-                else if (scanner.hasNextLine()) {
+                } else if (scanner.hasNextLine()) {
                     scanner.useDelimiter(" ")
                     cmd = scanner.nextLine()
                     Scanner(cmd)
@@ -127,7 +128,7 @@ class Uci {
                 if (token == "quit" || token == "stop") //TODO : Stop Threads
                 else if (token == "uci") print("id name " + engineInfo(true) + "\n" + "uciok\n")
                 else if (token == "go") go(pos, ss, states)
-                else if (token == "setoption") TODO("setoption add later")
+//                else if (token == "setoption") TODO("setoption add later")
                 else if (token == "position") position(pos, ss, states)
                 else if (token == "ucinewgame") //Search::clear(); // After a new game our old search is not valid
                 else if (token == "isready") println("readyok")

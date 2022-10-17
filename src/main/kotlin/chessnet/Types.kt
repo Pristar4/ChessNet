@@ -5,11 +5,14 @@ import chessnet.Square.SQ_H8
 
 
 // this File hold all type definitions
+typealias Key = ULong
 typealias Bitboard = ULong
+
+const val MAX_MOVES: Int = 256
+const val MAX_PLY: Int = 246
+
 class BitboardObject(var bb: Bitboard)
 
-
-typealias Key = ULong
 
 class Move(val value: Int = 0) {
 //    var MOVE_NONE = Move(0)
@@ -72,7 +75,12 @@ enum class CastlingRights(val value: Int) {
 enum class Value(val value: Int) {
     VALUE_ZERO(0), VALUE_DRAW(0), VALUE_KNOWN_WIN(10000), VALUE_MATE(32000), VALUE_INFINITE(32001), VALUE_NONE(
         32002
-    ),
+    ),;
+
+    operator fun unaryMinus(): Int {
+        return -value
+
+    }
 
 //    VALUE_TB_WIN_IN_MAX_PLY
 }
@@ -223,8 +231,6 @@ enum class Square(i: Int = -1) {
         return Square.values()[value + up.value]
 
 
-
-
     }
 
     operator fun inc(): Square {
@@ -270,12 +276,8 @@ enum class File(val char: Char) {
     );
 
 
-
     //FILE_NB('?');
     var value: Int = ordinal
-
-
-
 
 
 }
@@ -289,7 +291,6 @@ enum class Rank(val char: Char) {
     //RANK_NB('?');
 
     var value: Int = ordinal
-
 
 
 }
@@ -318,8 +319,9 @@ fun operatorPlus(s: Square, d: Direction): Square {
 fun operatorMinus(s: Square, d: Direction): Square {
     return Square.getSquare(s.ordinal - d.value)
 }
+
 fun makeSquare(f: Int, r: Int): Square {
-    return Square.getSquare((r shl 3)+f )
+    return Square.getSquare((r shl 3) + f)
 }
 
 fun isOk(s: Square): Boolean {
@@ -361,11 +363,18 @@ fun makePiece(c: Color, pt: PieceType): Piece {
 
 
 }
+fun makeSquare(file: File, rank: Rank): Square {
+    return Square.getSquare(file.ordinal + rank.ordinal * BOARD_SIZE)
+
+}
 
 fun typeOf(pc: Piece): PieceType {
     return PieceType(pc.value and 7)
 }
 
+fun promotionType(m: Move): PieceType {
+    TODO("Not yet implemented")
+}
 fun relativeSquare(color: Color, square: Square): Square {
     //TODO: check if this is correct
     return Square.getSquare(square.value xor (color.value * 56))
