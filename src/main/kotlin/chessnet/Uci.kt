@@ -47,6 +47,7 @@ class Uci {
             states.clear()/* states.clear() */
             states.add(StateInfo())
             pos.set(fen, false, states.last)
+            states.clear()/* states.clear() */
 
             // Parse move list (if any)
             while (scanner.hasNext()) {

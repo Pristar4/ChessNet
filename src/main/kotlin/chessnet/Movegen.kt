@@ -28,14 +28,7 @@ class ExtMove {
         moveList.clear()
     }
 
-    operator fun inc(): ExtMove {
-        // get the next element in the iteration
-        return this
 
-//        cur.move = moveList.moveList.elementAt(moveList.moveList.indexOf(cur.move) + 1)
-//        return cur
-
-    }
 
 
 }
@@ -141,7 +134,9 @@ class Movegen {
                 var bo: BitboardObject = BitboardObject(b)
 
                 if (checks) {
-                    b = b and attacksBb(QUEEN, pos.square(KING, us.opposite())).inv()
+                    //TODO: generateAll(): check if using BitboardObject is correct
+                    bo.bb = bo.bb and attacksBb(QUEEN, pos.square(KING, us.opposite())).inv()
+//                    b = b and attacksBb(QUEEN, pos.square(KING, us.opposite())).inv()
                 }
                 while (bo.bb != 0UL) {
                     moveList.moveList.add(makeMove(ksq, popLsb(bo)))
@@ -186,8 +181,8 @@ class Movegen {
                     && !pos.legal(cur.move))
                     cur.move = moveList.moveList.removeAt(moveList.moveList.size - 1)
                 else
-//                    ++cur  in kotlin
-                    ++cur
+                    cur.move = moveList.moveList.elementAt(moveList.moveList.indexOf(cur.move) + 1)
+
             }
 
             return moveList

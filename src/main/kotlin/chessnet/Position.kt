@@ -1,5 +1,6 @@
 package chessnet
 
+import chessnet.Bitboards.Companion.pretty
 import chessnet.PieceType.*
 import chessnet.Piece.*
 import chessnet.Color.*
@@ -51,9 +52,21 @@ class Position {
         return s
     }
 
-    fun init() {
-        TODO()
+    private fun init() {
+TODO()
     }
+
+
+    /**
+     * clear() resets the position object to the initial state.
+     */
+    private fun clear() {
+        byTypeBB= Array(PIECE_TYPE_NB.value) { 0UL }
+        byColorBB = Array(PIECE_TYPE_NB.value) { 0UL }
+        board = Array(SQUARE_NB.value) { NO_PIECE }
+
+    }
+
 
     // FEN string input/output
     /**  [set] () initializes the position object with the given FEN string.
@@ -99,13 +112,17 @@ class Position {
         var row = 7 // 7 because we start at the top of the board
         var sq: Square
         val ss = Scanner(fenStr)
-        ss.useDelimiter("")
 
-        this.board = Array(SQUARE_NB.value) { NO_PIECE }
-        si.pawnKey = 0UL
+//        std::memset(this, 0, sizeof(Position));
+//        std::memset(si, 0, sizeof(StateInfo)); in kotlin
+
+        clear()
+        st = si
+        ss.useDelimiter("")
         //TODO: Check if there is missing bug for values that are not being reset here
 
         // 1. Piece placement
+
         while (ss.hasNext() && !ss.hasNext("\\s")) {
             token = ss.next().single()
             if (token.isDigit()) {
@@ -122,10 +139,12 @@ class Position {
                 putPiece(Piece.getPiece(token), sq)
                 ++col
             }
+            else {
+                throw Exception("FEN error: invalid character '$token' in piece placement field")
+            }
         }
-
-
         // 2. Active color
+
         ss.next().single()  // Consume " "
         token = ss.next().single() // Consume "w" or "b"
         sideToMove = if (token == 'w') WHITE else BLACK
@@ -165,7 +184,6 @@ class Position {
          */
         val enpassant = false
         //TODO: En passant square implementation
-
         if (!enpassant) st.epSquare = SQ_NONE
 
         // 5. Halfmove clock and 6. Fullmove number
@@ -188,12 +206,11 @@ class Position {
 //        thisThread = Thread.currentThread()
         //thisThread = th
         setState(st)
-
         assert(posIsOk())
-
         return this
 
     }
+
 
     fun fen() {}
 
@@ -437,6 +454,7 @@ class Position {
     // Used by NNUE
     fun putPiece(piece: Piece, s: Square) {
         board[s.ordinal] = piece
+        byTypeBB[ALL_PIECES.value] = byTypeBB[ALL_PIECES.value] or squareBb(s)
         byTypeBB[typeOf(piece).value] = byTypeBB[typeOf(piece).value] or SquareBB[s.value]
         byColorBB[colorOf(piece).value] = byColorBB[colorOf(piece).value] or squareBb(s)
         pieceCount[piece.value]++
@@ -569,8 +587,6 @@ class Position {
         // is moving along the ray towards or away from the king.
         return !(blockersForKing(us) and squareBb(from))
                 || aligned(from, to, square(KING, us)) == 0uL
-
-
     }
 
     private fun squaresBetween(from: Square, to: Square, step: Direction): List<Square> {

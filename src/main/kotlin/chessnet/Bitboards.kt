@@ -60,8 +60,6 @@ class Bitboards {
             * to be printed to standard output. Useful for debugging.
             */
         fun pretty(b: Bitboard): String {
-            println(b)
-            println("pretty")
             var s = "+---+---+---+---+---+---+---+---+\n"
             for (r in Rank.RANK_8.value downTo Rank.RANK_1.value) {
                 for (f in File.FILE_A.value..File.FILE_H.value) {
@@ -264,9 +262,7 @@ fun pawnAttacksBb(c: Color, s1: Int): Bitboard {
 
 fun attacksBb(Pt: PieceType, s: Square): Bitboard {
     assert((Pt != PAWN) && (isOk(s)))
-
-    //TODO: check if this is correct
-    return PseudoAttacks[Pt.ordinal][s.ordinal - 1]
+    return PseudoAttacks[Pt.ordinal][s.ordinal]
 
 }
 
