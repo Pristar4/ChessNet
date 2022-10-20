@@ -53,7 +53,7 @@ class Position {
     }
 
     private fun init() {
-TODO()
+        TODO()
     }
 
 
@@ -64,7 +64,7 @@ TODO()
         byTypeBB= Array(PIECE_TYPE_NB.value) { 0UL }
         byColorBB = Array(COLOR_NB.value) { 0UL }
         board = Array(SQUARE_NB.value) { NO_PIECE }
-
+        pieceCount = Array(PIECE_NB.value) { 0 }
     }
 
 
@@ -138,8 +138,7 @@ TODO()
                 sq = makeSquare(File.values()[col], Rank.values()[row])
                 putPiece(Piece.getPiece(token), sq)
                 ++col
-            }
-            else {
+            } else {
                 throw Exception("FEN error: invalid character '$token' in piece placement field")
             }
         }
