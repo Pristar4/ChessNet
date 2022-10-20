@@ -62,7 +62,7 @@ TODO()
      */
     private fun clear() {
         byTypeBB= Array(PIECE_TYPE_NB.value) { 0UL }
-        byColorBB = Array(PIECE_TYPE_NB.value) { 0UL }
+        byColorBB = Array(COLOR_NB.value) { 0UL }
         board = Array(SQUARE_NB.value) { NO_PIECE }
 
     }
