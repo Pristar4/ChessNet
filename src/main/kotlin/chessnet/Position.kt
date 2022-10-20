@@ -5,6 +5,7 @@ import chessnet.Piece.*
 import chessnet.Color.*
 import chessnet.CastlingRights.*
 import chessnet.Square.*
+import chessnet.Direction.*
 import chessnet.MoveType.*
 import java.util.*
 import kotlin.math.max
@@ -193,37 +194,70 @@ class Position {
         return this
 
     }
+
     fun fen() {}
 
     // Position representation
     fun pieces(pt: PieceType = ALL_PIECES): Bitboard {
         return byTypeBB[pt.value]
     }
+
     fun pieces(pt1: PieceType, pt2: PieceType): Bitboard {
         return pieces(pt1) or pieces(pt2)
     }
+
     fun pieces(c: Color): Bitboard {
         return byColorBB[c.value]
     }
+
     fun pieces(c: Color, pt: PieceType): Bitboard {
         return pieces(c) and pieces(pt)
     }
+
     fun pieces(c: Color, pt1: PieceType, pt2: PieceType): Bitboard {
         return pieces(c) and (pieces(pt1) or pieces(pt2))
     }
+
     fun pieces(pt1: PieceType, pt2: PieceType, pt3: PieceType): Bitboard {
         return pieces(pt1) or pieces(pt2) or pieces(pt3)
     }
+
     fun pieceOn(s: Square): Piece {
         assert(isOk(s))
         return board[s.value]
     }
+
     fun epSquare(): Square {
         return st.epSquare
     }
+
+    fun attackersTo(s: Square): Bitboard {
+        return attackersTo(s, pieces())
+
+    }
+
+    /**
+     * attackersTo() returns a bitboard representing all pieces of the given color
+     * that attack a given square.
+     * @param s Square to which the attacking pieces must be computed
+     * @param occupied Bitboard representing all the occupied squares
+     */
+    private fun attackersTo(s: Square, occupied: Bitboard): Bitboard {
+        return (pawnAttacksBb(BLACK, s.value) and pieces(WHITE, PAWN)) or ((pawnAttacksBb(WHITE, s.value) and pieces(
+            BLACK,
+            PAWN
+        )) or (attacksBb(KNIGHT, s) and pieces(KNIGHT)) or (attacksBb(s, occupied, ROOK) and pieces(
+            ROOK,
+            QUEEN
+        )) or (attacksBb(s, occupied, BISHOP) and pieces(BISHOP, QUEEN)) or (attacksBb(KING, s) and pieces(KING)))
+
+
+    }
+
     fun count(c: Color, pt: PieceType): Int {
         return pieceCount[makePiece(c, pt).value]
     }
+
     fun square(pt: PieceType, c: Color): Square {
         assert(count(c, pt) == 1)
         return lsb(pieces(c, pt))
@@ -233,12 +267,14 @@ class Position {
     fun canCastle(cr: Int): Boolean {
         return st.castlingRights and cr != 0
     }
+
     fun castlingImpeded(cr: CastlingRights): Boolean {
         assert(cr == WHITE_OO || cr == WHITE_OOO || cr == BLACK_OO || cr == BLACK_OOO)
 
         return pieces() and castlingPath[cr.value] != 0UL
 
     }
+
     fun castlingRookSquare(cr: CastlingRights): Square {
         assert(cr == WHITE_OO || cr == WHITE_OOO || cr == BLACK_OO || cr == BLACK_OOO)
 
@@ -252,12 +288,14 @@ class Position {
 
         return st.blockersForKing[c.value]
     }
+
     fun checkSquares(pt: PieceType): Bitboard {
 
         return st.checkSquares[pt.value]
 
 
     }
+
     fun checkers(): Bitboard {
         return st.checkersBB
 
@@ -322,6 +360,7 @@ class Position {
         }
         return false
     }
+
     fun movedPiece(m: Move): Piece {
         return pieceOn(fromSq(m))
     }
@@ -333,6 +372,7 @@ class Position {
         doMove(m, newSt, givesCheck(m))
 
     }
+
     fun doMove(m: Move, newSt: StateInfo, givesCheck: Boolean) {
         assert(isOk(m))
         assert(newSt != st)
@@ -397,14 +437,14 @@ class Position {
     // Used by NNUE
     fun putPiece(piece: Piece, s: Square) {
         board[s.ordinal] = piece
-        byTypeBB[ALL_PIECES.value] = byTypeBB[ALL_PIECES.value] or (1uL shl s.ordinal)
-        byTypeBB[typeOf(piece).value] = byTypeBB[typeOf(piece).value] or (1uL shl s.ordinal)
+        byTypeBB[typeOf(piece).value] = byTypeBB[typeOf(piece).value] or SquareBB[s.value]
         byColorBB[colorOf(piece).value] = byColorBB[colorOf(piece).value] or squareBb(s)
         pieceCount[piece.value]++
         pieceCount[makePiece(colorOf(piece), ALL_PIECES).value]++
         //FIXME: psq does not work
 //        psq = psq + psq[piece.value][s.ordinal]
     }
+
     private fun removePiece(s: Square) {
         var pc: Piece = board[s.ordinal]
         byTypeBB[ALL_PIECES.value] = byTypeBB[ALL_PIECES.value] xor squareBb(s)
@@ -456,7 +496,9 @@ class Position {
     }
 
     // Other helpers
-    private fun doCastling(us: Color,from: Square,to: Deque<Square>,rfrom: Deque<Square>,rto: Deque<Square>,doIt: Boolean = false) {
+    private fun doCastling(
+        us: Color, from: Square, to: Deque<Square>, rfrom: Deque<Square>, rto: Deque<Square>, doIt: Boolean = false
+    ) {
         val kingSide: Boolean = to.peek() > from
         rfrom.add(to.first())
         rto.add(relativeSquare(us, if (kingSide) SQ_F1 else SQ_D1))
@@ -472,6 +514,76 @@ class Position {
 
     }
 
+    fun legal(m: Move): Boolean {
+        assert(isOk(m))
+
+        var us: Color = sideToMove
+        var from: Square = fromSq(m)
+        var to: Square = toSq(m)
+
+        assert(colorOf(movedPiece(m)) == us)
+        assert(pieceOn(square(KING, us)) == makePiece(us, KING))
+
+        // En passant captures are a tricky special case. Because they are rather
+        // uncommon, we do it simply by testing whether the king is attacked after
+        // the move is made.
+        if (typeOf(m) == EN_PASSANT) {
+            var ksq: Square = square(KING, us)
+            var capsq: Square = to - pawnPush(us)
+            var occupied: Bitboard = (pieces() xor squareBb(from) xor squareBb(capsq)) or squareBb(to)
+
+            assert(to == st.epSquare)
+            assert(movedPiece(m) == makePiece(us, PAWN))
+            assert(pieceOn(capsq) == makePiece(us.opposite(), PAWN))
+            assert(pieceOn(to) == NO_PIECE)
+
+            return !(attacksBb(ksq, occupied, ROOK) and pieces(us.opposite(), QUEEN, ROOK)) && !(attacksBb(
+                ksq,
+                occupied,
+                BISHOP
+            ) and pieces(us.opposite(), QUEEN, BISHOP))
+        }
+        // Castling moves generation does not check if the castling path is clear of
+        // enemy attacks, it is delayed at a later time: now!
+        if (typeOf(m) == CASTLING) {
+            // After castling, the rook and king final positions are the same in
+            // Chess960 as they would be in standard chess.
+            to = relativeSquare(us, if (to > from) SQ_G1 else SQ_C1)
+            var step: Direction = if (to > from) WEST else EAST
+
+            //for each square between the rook and king
+            for (s: Square in squaresBetween(from, to, step)) {
+                if (attackersTo(s) and pieces(us.opposite()) == 0uL) {
+                    return false
+                }
+            }
+            // In case of Chess960, verify if the Rook blocks some checks
+            // For instance an enemy queen in SQ_A1 when castling rook is in SQ_B1.
+            return !chess960 || !(blockersForKing(us) and pieces(us.opposite()))
+        }
+        // If the moving piece is a king, check whether the destination square is
+        // attacked by the opponent.
+        if (typeOf(pieceOn(from)) == KING)
+            return !(attackersTo(to, pieces() xor squareBb(from)) and squareBb(toSq(m)))
+        // A non-king move is legal if and only if it is not pinned or it
+        // is moving along the ray towards or away from the king.
+        return !(blockersForKing(us) and squareBb(from))
+                || aligned(from, to, square(KING, us)) == 0uL
+
+
+    }
+
+    private fun squaresBetween(from: Square, to: Square, step: Direction): List<Square> {
+        var squares: MutableList<Square> = mutableListOf()
+        var s: Square = from + step
+        while (s != to) {
+            squares.add(s)
+            s += step
+        }
+        return squares
+    }
+
+
     // Data members
     var board: Array<Piece> = Array(SQUARE_NB.value) { NO_PIECE }
     var byTypeBB: Array<Bitboard> = Array(PIECE_TYPE_NB.value) { 0UL }
@@ -486,7 +598,6 @@ class Position {
     var sideToMove: Color = WHITE
     var psq: Score = Score.SCORE_ZERO
     var chess960: Boolean = false
+
+
 }
-
-
-

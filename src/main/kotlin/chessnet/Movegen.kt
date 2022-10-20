@@ -2,8 +2,10 @@ package chessnet
 
 import java.util.Vector
 import chessnet.GenType.*
+import chessnet.PieceType.*
+import chessnet.CastlingRights.*
+import chessnet.MoveType.*
 import chessnet.Movegen.Companion.generate
-import java.util.BitSet
 
 enum class GenType {
     CAPTURES, QUIETS, QUIET_CHECKS, EVASIONS, NON_EVASIONS, LEGAL,
@@ -26,8 +28,18 @@ class ExtMove {
         moveList.clear()
     }
 
+    operator fun inc(): ExtMove {
+        // get the next element in the iteration
+        return this
+
+//        cur.move = moveList.moveList.elementAt(moveList.moveList.indexOf(cur.move) + 1)
+//        return cur
+
+    }
+
 
 }
+
 
 /** The MoveList struct is a simple wrapper around generate(). It sometimes comes
  * in handy to use this class instead of the low level generate() function.
@@ -76,24 +88,24 @@ class Movegen {
 
 
     companion object {
+        fun generatePawnMoves(pos: Position, moveList: ExtMove, target: Bitboard, us: Color, type: GenType): ExtMove {
+            return TODO()
+
+        }
+
         fun generateMoves(
-            pos: Position,
-            moveList: ExtMove,
-            target: Bitboard,
-            us: Color,
-            pt: PieceType,
-            checks: Boolean
+            pos: Position, moveList: ExtMove, target: Bitboard, us: Color, pt: PieceType, checks: Boolean
         ): ExtMove {
-            assert(pt != PieceType.KING && pt != PieceType.PAWN)
+            assert(pt != KING && pt != PAWN)
             var bb: Bitboard = pos.pieces(us, pt)
-            var bbo: BitboardObject = BitboardObject(bb)
+            var bbo = BitboardObject(bb)
             while (bbo.bb != 0UL) {
                 val from: Square = popLsb(bbo)
                 var b: Bitboard = attacksBb(from, pos.pieces(), pt) and target
-                var bbo2: BitboardObject = BitboardObject(b)
+                var bbo2 = BitboardObject(b)
 
                 // To check, you either move freely a blocker or make a direct check.
-                if (checks && (pt == PieceType.QUEEN || !(pos.blockersForKing(us.opposite()) and squareBb(from))))
+                if (checks && (pt == QUEEN || !(pos.blockersForKing(us.opposite()) and squareBb(from))))
                     b = b and pos.checkSquares(pt)
                 while (bbo2.bb != 0UL)
                     moveList.moveList.add(makeMove(from, popLsb(bbo2)))
@@ -102,16 +114,86 @@ class Movegen {
             return moveList
         }
 
-        fun generate(pos: Position, moveList: ExtMove, type: GenType): ExtMove {
-            assert((type == EVASIONS) == (pos.checkers() != 0UL))
+        fun generateAll(pos: Position, moveList_: ExtMove, us: Color, type: GenType): ExtMove {
+            var moveList: ExtMove = moveList_
+            assert(type != LEGAL) { "generateAll(): Unsupported type" }
+            val checks: Boolean = type == QUIET_CHECKS // Only generate checks in this case
+            val ksq: Square = pos.square(KING, us)
+            var target: Bitboard = if (type == EVASIONS) pos.checkers() else pos.pieces()
 
-            moveList.clear()
-            val m = generateMoves(pos,moveList,pos.pieces(),pos.sideToMove,PieceType.PAWN,pos.checkers()!=0UL)
-            moveList.moveList.addAll(m.moveList)
+            // Skip generating non-king moves when in double check
+            if (type != EVASIONS || !moreThanOne(pos.checkers())) {
+                target = when (type) {
+                    EVASIONS -> betweenBb(ksq, lsb(pos.checkers()))
+                    NON_EVASIONS -> pos.pieces(us.opposite())
+                    CAPTURES -> pos.pieces(us.opposite())
+                    else -> pos.pieces() // QUIETS || QUIET_CHECKS
+                }
+
+//                moveList = generatePawnMoves(pos, moveList, target, us, type)
+//                moveList = generateMoves(pos, moveList, target, us, KNIGHT, checks)
+//                moveList = generateMoves(pos, moveList, target, us, BISHOP, checks)
+                moveList = generateMoves(pos, moveList, target, us, ROOK, checks)
+                moveList = generateMoves(pos, moveList, target, us, QUEEN, checks)
+            }
+            if (!checks || (pos.blockersForKing(us.opposite()) and squareBb(ksq)) == 0UL) {
+                var b: Bitboard = attacksBb(KING, ksq) and (if (type == EVASIONS) pos.pieces(us).inv() else target)
+                var bo: BitboardObject = BitboardObject(b)
+
+                if (checks) {
+                    b = b and attacksBb(QUEEN, pos.square(KING, us.opposite())).inv()
+                }
+                while (bo.bb != 0UL) {
+                    moveList.moveList.add(makeMove(ksq, popLsb(bo)))
+                }
+                if ((type == QUIETS || type == NON_EVASIONS) && pos.canCastle(us.value and ANY_CASTLING.value))
+                    for (cr in listOf(us.value and KING_SIDE.value, us.value and QUEEN_SIDE.value))
+                        if (!pos.castlingImpeded(CastlingRights.values()[cr]) && pos.canCastle(cr))
+                            moveList.moveList.add(makeMove(ksq, pos.castlingRookSquare(CastlingRights.values()[cr])))
+            }
+
+            return moveList
+        }
+
+
+        fun generate(pos: Position, moveList: ExtMove, type: GenType): ExtMove {
+            assert(type != LEGAL) { "generate(): type == LEGAL is not supported" }
+            assert((type == EVASIONS) == (pos.checkers() != 0UL)) { "generate(): type == EVASIONS is not supported" }
+
+            val us: Color = pos.sideToMove
+            return when (us == Color.WHITE) {
+                true -> generateAll(pos, moveList, Color.WHITE, type)
+                false -> generateAll(pos, moveList, Color.BLACK, type)
+            }
+        }
+
+        /// generate<LEGAL> generates all the legal moves in the given position
+        fun generate(pos: Position, moveList_: ExtMove): ExtMove {
+            var us: Color = pos.sideToMove
+            var pinned: Bitboard = pos.blockersForKing(us) and pos.pieces(us)
+            var ksq: Square = pos.square(KING, us)
+            var moveList: ExtMove = moveList_
+            var cur: ExtMove = moveList
+
+
+            moveList = if (pos.checkers() != 0UL) {
+                generate(pos, moveList, EVASIONS)
+            } else {
+                generate(pos, moveList, NON_EVASIONS)
+            }
+            while (cur != moveList){
+                if (  ((pinned and squareBb(fromSq(cur.move))) != 0UL || fromSq(cur.move) == ksq || typeOf(cur.move) == EN_PASSANT)
+                    && !pos.legal(cur.move))
+                    cur.move = moveList.moveList.removeAt(moveList.moveList.size - 1)
+                else
+//                    ++cur  in kotlin
+                    ++cur
+            }
+
             return moveList
 
-
         }
+
 
     }
 

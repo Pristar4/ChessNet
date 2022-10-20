@@ -128,15 +128,10 @@ class Magic(
 ) {
     fun index(occupied: Bitboard): Int {
         //TODO: check if this is correct
-
-        return ((occupied * magic) ushr shift).toInt()
-
+        return ((occupied * magic).toInt() ushr shift)
     }
 }
 
-private fun Any.toInt(): Int {
-    return this as Int
-}
 
 val RookMagics: Array<Magic> =
     Array(SQUARE_NB.value) { Magic(0UL, 0UL, Array(4096) { 0UL }, 0) }
@@ -301,31 +296,18 @@ fun attacksBb(
 
 fun rookAttacksBb(s: Square, occupied: Bitboard): Bitboard {
     val magic = RookMagics[s.value]
-    val index = ((occupied and magic.mask) * magic.magic) ushr magic.shift
+    val index = magic.index(occupied)
     return magic.attacks[index.toInt()]
 
 }
 
 fun bishopAttacksBb(s: Square, occupied: Bitboard): Bitboard {
     val magic = BishopMagics[s.value]
-    val index = ((occupied and magic.mask) * magic.magic) ushr magic.shift
+    val index = magic.index(occupied)
     return magic.attacks[index.toInt()]
 
 }
 
-private infix fun Any.ushr(shift: Int): Any {
-    return when (this) {
-        is ULong -> this ushr shift
-        is Long -> this ushr shift
-        is UInt -> this ushr shift
-        is Int -> this ushr shift
-        is UShort -> this ushr shift
-        is Short -> this ushr shift
-        is UByte -> this ushr shift
-        is Byte -> this ushr shift
-        else -> throw Exception("Unknown type")
-    }
-}
 
 
 // TODO: check if this should be here or in companion object

@@ -214,8 +214,6 @@ enum class Square(i: Int = -1) {
             }
             return SQ_NONE
         }
-
-
     }
 
     operator fun get(i: Int): Square {
@@ -227,7 +225,7 @@ enum class Square(i: Int = -1) {
 
     }
 
-    operator fun plus(up: Square): Square {
+    operator fun plus(up: Direction): Square {
         return Square.values()[value + up.value]
 
 
