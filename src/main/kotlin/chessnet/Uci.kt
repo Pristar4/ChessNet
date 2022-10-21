@@ -80,7 +80,7 @@ class Uci {
 
 
             }
-            val limits:LimitsType = LimitsType()
+            val limits = LimitsType()
             Threads.startThinking(pos,states,limits,ponderMode)
         }
 

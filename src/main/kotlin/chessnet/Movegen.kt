@@ -46,8 +46,11 @@ class MoveList(val pos: Position, val type: GenType) {
     private val moveList: ExtMove = ExtMove()
 
     init {
-        moves = generate(pos, moveList, type)
-        println("moves: ${moves.moveList}")
+        moves = if (type == LEGAL) {
+            generate(pos, moveList)
+        } else {
+            generate(pos, moveList, type)
+        }
         cur = 0
         end = moveList.moveList.size
 
@@ -107,8 +110,8 @@ class Movegen {
             return moveList
         }
 
-        fun generateAll(pos: Position, moveList_: ExtMove, us: Color, type: GenType): ExtMove {
-            var moveList: ExtMove = moveList_
+        fun generateAll(pos: Position, _moveList: ExtMove, us: Color, type: GenType): ExtMove {
+            var moveList: ExtMove = _moveList
             assert(type != LEGAL) { "generateAll(): Unsupported type" }
             val checks: Boolean = type == QUIET_CHECKS // Only generate checks in this case
             val ksq: Square = pos.square(KING, us)
@@ -116,23 +119,38 @@ class Movegen {
 
             // Skip generating non-king moves when in double check
             if (type != EVASIONS || !moreThanOne(pos.checkers())) {
+              /*  target = Type == EVASIONS       ? between_bb(ksq, lsb(pos.checkers()))
+                : Type == NON_EVASIONS ? ~pos.pieces(Us)
+                : Type == CAPTURES     ? pos.pieces(~Us)
+                : ~pos.pieces(); // QUIETS || QUIET_CHECKS in kotlin*/
                 target = when (type) {
-                    EVASIONS -> betweenBb(ksq, lsb(pos.checkers()))
-                    NON_EVASIONS -> pos.pieces(us.opposite())
-                    CAPTURES -> pos.pieces(us.opposite())
-                    else -> pos.pieces() // QUIETS || QUIET_CHECKS
+                    EVASIONS -> {
+                        betweenBb(ksq, lsb(pos.checkers()))
+                    }
+                    NON_EVASIONS -> {
+                        // ~pos.pieces(Us)
+                        pos.pieces(us).inv()
+                    }
+                    CAPTURES -> {
+                        pos.pieces(us.opposite())
+                    }
+                    else -> {
+                        pos.pieces().inv()
+                    }
                 }
+                        println(Bitboards.pretty(target))
+
 
 //                moveList = generatePawnMoves(pos, moveList, target, us, type)
-//                moveList = generateMoves(pos, moveList, target, us, KNIGHT, checks)
-//                moveList = generateMoves(pos, moveList, target, us, BISHOP, checks)
+                moveList = generateMoves(pos, moveList, target, us, KNIGHT, checks)
+                moveList = generateMoves(pos, moveList, target, us, BISHOP, checks)
                 moveList = generateMoves(pos, moveList, target, us, ROOK, checks)
                 moveList = generateMoves(pos, moveList, target, us, QUEEN, checks)
             }
-            if (!checks || (pos.blockersForKing(us.opposite()) and squareBb(ksq)) == 0UL) {
-                var b: Bitboard = attacksBb(KING, ksq) and (if (type == EVASIONS) pos.pieces(us).inv() else target)
-                var bo: BitboardObject = BitboardObject(b)
 
+            if (!checks || (pos.blockersForKing(us.opposite()) and squareBb(ksq)) == 0UL) {
+                val b: Bitboard = attacksBb(KING, ksq) and (if (type == EVASIONS) pos.pieces(us).inv() else target)
+                val bo: BitboardObject = BitboardObject(b)
                 if (checks) {
                     //TODO: generateAll(): check if using BitboardObject is correct
                     bo.bb = bo.bb and attacksBb(QUEEN, pos.square(KING, us.opposite())).inv()
@@ -141,10 +159,12 @@ class Movegen {
                 while (bo.bb != 0UL) {
                     moveList.moveList.add(makeMove(ksq, popLsb(bo)))
                 }
+
                 if ((type == QUIETS || type == NON_EVASIONS) && pos.canCastle(us.value and ANY_CASTLING.value))
                     for (cr in listOf(us.value and KING_SIDE.value, us.value and QUEEN_SIDE.value))
                         if (!pos.castlingImpeded(CastlingRights.values()[cr]) && pos.canCastle(cr))
                             moveList.moveList.add(makeMove(ksq, pos.castlingRookSquare(CastlingRights.values()[cr])))
+
             }
 
             return moveList
@@ -163,11 +183,12 @@ class Movegen {
         }
 
         /// generate<LEGAL> generates all the legal moves in the given position
-        fun generate(pos: Position, moveList_: ExtMove): ExtMove {
+
+        fun generate(pos: Position, _moveList: ExtMove): ExtMove {
             var us: Color = pos.sideToMove
             var pinned: Bitboard = pos.blockersForKing(us) and pos.pieces(us)
             var ksq: Square = pos.square(KING, us)
-            var moveList: ExtMove = moveList_
+            var moveList: ExtMove = _moveList
             var cur: ExtMove = moveList
 
 
