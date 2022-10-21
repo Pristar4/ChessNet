@@ -196,17 +196,15 @@ class Uci {
         /** toMove() converts a given string representing a move in coordinate
          * notation ( g1f3,a7a8q) to the corresponding legal Move, if any.
          */
-        private fun toMove(pos: Position, _str: String): Move {
-            var str = _str
-            if (str.length == 5) {
-                //The promotion piece character must be lower case
-                str = str.substring(0, 4) + str[4].lowercaseChar()
-            }
-            // FIXME:  Add MoveLists/ Add Move Generation
-            //for (const auto& m : MoveList<LEGAL>(pos))
-            //      if (str == UCI::move(m, pos.is_chess960()))
-            //          return m;
+        private fun toMove(pos: Position, str: String): Move {
 
+            if (str.length == 5) {
+                str.replace(str[4], str[4].lowercaseChar())
+            }
+            for (m in MoveList(pos, GenType.LEGAL)) {
+//                println("move: ${move(m, pos.isChess960)}")
+                return m
+            }
             return Move.MOVE_NONE
 
 

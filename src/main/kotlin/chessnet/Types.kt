@@ -246,6 +246,7 @@ enum class Square(i: Int = -1) {
     }
 }
 
+
 fun CastlingRights(c: Color, cr: CastlingRights): CastlingRights {
     //TODO check if this is correct
     return CastlingRights.values()[c.value * 4 + cr.value]
@@ -386,7 +387,7 @@ fun fromSq(m: Move): Square {
 }
 
 fun toSq(m: Move): Square {
-    return Square.getSquare(m.value and 0x3F)
+    return Square.values()[m.value and 0x3F]
 }
 
 fun typeOf(m: Move): MoveType {

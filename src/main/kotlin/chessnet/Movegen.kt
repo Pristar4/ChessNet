@@ -14,7 +14,7 @@ enum class GenType {
 
 class ExtMove(val size: Int = 0) {
     var moveList: Vector<Move> = Vector()
-    var move: Move = Move()
+    var move: Move = Move.MOVE_NONE
     var value: Int = 0
 
 
@@ -40,7 +40,7 @@ class ExtMove(val size: Int = 0) {
 class MoveList(val pos: Position, val type: GenType) {
     var cur: Int = 0
     var end: Int = 0
-    var moves: ExtMove = ExtMove()
+    var moves: ExtMove
 
 
     private val moveList: ExtMove = ExtMove()
@@ -138,7 +138,7 @@ class Movegen {
                         pos.pieces().inv()
                     }
                 }
-                        println(Bitboards.pretty(target))
+//                        println(Bitboards.pretty(target))
 
 
 //                moveList = generatePawnMoves(pos, moveList, target, us, type)

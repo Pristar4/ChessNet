@@ -26,6 +26,7 @@ var StateList: Deque<StateInfo> = ArrayDeque<StateInfo>()
  */
 class Position {
     var fen = ""
+
     // returns an ASCII representation of the position
     override fun toString(): String {
         var s = ""
@@ -44,6 +45,7 @@ class Position {
             f = 0
             r--
         }
+        s += "FEN: $fen\n"
         s += "sideToMove: $sideToMove\n"
         s += "castlingRights: ${st.castlingRights}\n"
         s += "epSquare: ${st.epSquare}\n"
@@ -61,7 +63,7 @@ class Position {
      * clear() resets the position object to the initial state.
      */
     private fun clear() {
-        byTypeBB= Array(PIECE_TYPE_NB.value) { 0UL }
+        byTypeBB = Array(PIECE_TYPE_NB.value) { 0UL }
         byColorBB = Array(COLOR_NB.value) { 0UL }
         board = Array(SQUARE_NB.value) { NO_PIECE }
         pieceCount = Array(PIECE_NB.value) { 0 }
@@ -212,7 +214,7 @@ class Position {
     }
 
 
-    fun fen(): String{
+    fun fen(): String {
         //TODO: implement real fen
         return this.fen
     }
@@ -417,12 +419,14 @@ class Position {
         val them = Color.values()[us.ordinal xor 1]
         val from = fromSq(m)
 //        var to = toSq(m)
-        val to: Deque<Square> = ArrayDeque()
-        to.add(toSq(m))
+        val to: Square = toSq(m)
         val pc = pieceOn(from)
-        val captured: Piece = if (typeOf(m) == EN_PASSANT) makePiece(
-            them, PAWN
-        ) else pieceOn(to.first)
+        val captured: Piece = if (typeOf(m) == EN_PASSANT) {
+            makePiece(them, PAWN)
+        } else {
+            pieceOn(to)
+        }
+
         assert(colorOf(pc) == us)
         assert(captured == NO_PIECE || colorOf(captured) == (if (typeOf(m) != CASTLING) them else us))
         assert(typeOf(captured) != KING)
@@ -430,8 +434,8 @@ class Position {
         if (typeOf(m) == CASTLING) {
             assert(pc == makePiece(us, KING))
             assert(captured == makePiece(us, ROOK))
-            val rfrom: Deque<Square> = ArrayDeque()
-            val rto: Deque<Square> = ArrayDeque()
+            val rfrom: Square = SQ_NONE
+            val rto: Square = SQ_NONE
 
             doCastling(us, from, to, rfrom, rto, true)
 
@@ -439,7 +443,57 @@ class Position {
         }
 
 
+        if (captured != NO_PIECE) {
+            var capsq: Square = to
+
+            // If the captured piece is a pawn, update pawn hash key, otherwise
+            // update non-pawn material.
+            if (typeOf(captured) == PAWN){
+                if (typeOf(m) == EN_PASSANT){
+                    capsq -= pawnPush(us)
+
+                    assert(pc == makePiece(us, PAWN))
+                    assert(to == st.epSquare)
+                    assert(relativeRank(us, to) == Rank.RANK_6)
+                    assert(pieceOn(to) == NO_PIECE)
+                    assert(pieceOn(capsq) == makePiece(them, PAWN))
+                }
+                //TODO: implement Zobrish hashing
+//                st.pawnKey ^= Zobrist.psq[capsq.value][captured.value]
+
+            } else{
+//                st.nonPawnMaterial[them.value] -= PieceValue[MG][captured.value]
+                //TODO: implement Zobrish hashing
+            }
+
+            // Update board and piece lists
+            removePiece(capsq)
+
+            if (typeOf(m) == EN_PASSANT)
+                board[capsq.value] = NO_PIECE
+            // Update material hash key and prefetch access to materialTable
+            //TODO: add material hash key and prefetch acces to materialTable
+
+            //Reset rule50 counter
+            st.rule50 = 0
+
+        }
+
+        // Reset en passant square
+        if (st.epSquare != SQ_NONE){
+            st.epSquare = SQ_NONE
+        }
+        // Update castling rights if needed
+        if (st.castlingRights != 0 && (castlingRightsMask[from.value] or castlingRightsMask[to.value]) != 0) {
+            st.castlingRights = st.castlingRights and castlingRightsMask[from.value].inv() and castlingRightsMask[to.value]
+        }
+
+        // Move the piece. The tricky Chess960 castling is handled earlier
+        if (typeOf(m) != CASTLING) {
+           movePiece(from,to)
+        }
     }
+
 
     // Static Exchange Evaluation
 
@@ -517,21 +571,68 @@ class Position {
     }
 
     // Other helpers
+    fun movePiece(from: Square, to: Square) {
+        var pc = board[from.value]
+        var fromTo:Bitboard = squareBb(from) or squareBb(to)
+        byTypeBB[ALL_PIECES.value] = byTypeBB[ALL_PIECES.value] xor fromTo
+        byTypeBB[typeOf(pc).value] = byTypeBB[typeOf(pc).value] xor fromTo
+        byColorBB[colorOf(pc).value] = byColorBB[colorOf(pc).value] xor fromTo
+        board[from.value] = NO_PIECE
+        board[to.value] = pc
+
+        //TODO: add psq here
+//        psq += PSQT::psq[pc][to] - PSQT::psq[pc][from];
+
+
+    }
     private fun doCastling(
-        us: Color, from: Square, to: Deque<Square>, rfrom: Deque<Square>, rto: Deque<Square>, doIt: Boolean = false
+        us: Color, from: Square, _to: Square, _rfrom: Square, _rto: Square, doIt: Boolean = false
     ) {
-        val kingSide: Boolean = to.peek() > from
-        rfrom.add(to.first())
-        rto.add(relativeSquare(us, if (kingSide) SQ_F1 else SQ_D1))
-        to.add((relativeSquare(us, if (kingSide) SQ_F1 else SQ_D1)))
+        val kingSide: Boolean = _to > from
+        val rfrom = _to
+        val rto = (relativeSquare(us, if (kingSide) SQ_F1 else SQ_D1))
+        val to = ((relativeSquare(us, if (kingSide) SQ_F1 else SQ_D1)))
 
 
-        if (doIt) {
-            removePiece(from)
-            removePiece(to.first())
-            putPiece(makePiece(us, KING), to.first())
-            putPiece(makePiece(us, ROOK), rto.first())
-        }
+        removePiece(
+            if (doIt) {
+                from
+            } else {
+                to
+            }
+        )
+        removePiece(
+            if (doIt) {
+                rfrom
+            } else {
+                rto
+            }
+        )
+//        board[Do ? from : to] = board[Do ? rfrom : rto] = NO_PIECE; in kotlin
+        board[if (doIt) {
+            from
+        } else {
+            to
+        }.value] = NO_PIECE
+        board[if (doIt) {
+            rfrom
+        } else {
+            rto
+        }.value] = NO_PIECE
+        putPiece(
+            makePiece(us, KING), if (doIt) {
+                to
+            } else {
+                from
+            }
+        )
+        putPiece(
+            makePiece(us, ROOK), if (doIt) {
+                rto
+            } else {
+                rfrom
+            }
+        )
 
     }
 
@@ -617,6 +718,8 @@ class Position {
     var sideToMove: Color = WHITE
     var psq: Score = Score.SCORE_ZERO
     var isChess960: Boolean = false
+
+
 
 
 }

@@ -4,6 +4,7 @@ class StateInfo {
 
     var pawnKey: Key = 0UL
     var materialKey: Key = 0UL
+    val nonPawnMaterial: Value = Value.VALUE_ZERO
     //val nonPawnMaterial: Value =
     var castlingRights: Int = 0
     var rule50: Int = 0

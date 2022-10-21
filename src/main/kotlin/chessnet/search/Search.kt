@@ -6,6 +6,7 @@ import chessnet.Position
 import chessnet.Uci
 import chessnet.Value.*
 import chessnet.thread.Thread
+import chessnet.thread.Thread.Companion.rootMoves
 import chessnet.thread.Thread.Companion.rootPos
 import java.util.*
 
@@ -44,23 +45,23 @@ class RootMove(val move: Move) {
 /**
  * clear() resets search state to its initial value.
  */
-fun clear(){
+fun clear() {
     // TODO()
 }
+
 fun search() {
 
-    var us:Color = rootPos.sideToMove
+    var us: Color = rootPos.sideToMove
 
     //choose random move from rootMoves
+    var bestMove: Move = Move.MOVE_NONE
+    if (rootMoves.isNotEmpty()) bestMove = rootMoves.elementAt(Random().nextInt(rootMoves.size)).move
 
-    var bestMove: Move = Thread.rootMoves.elementAt(Random().nextInt(Thread.rootMoves.size)).move
 
     //print best move
     println("bestmove ${Uci.move(bestMove, rootPos.isChess960)}")
 
     return
-
-
 
 
 }
