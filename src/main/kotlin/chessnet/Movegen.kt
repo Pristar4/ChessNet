@@ -12,7 +12,7 @@ enum class GenType {
 }
 
 
-class ExtMove {
+class ExtMove(val size: Int = 0) {
     var moveList: Vector<Move> = Vector()
     var move: Move = Move()
     var value: Int = 0

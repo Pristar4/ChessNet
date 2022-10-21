@@ -4,25 +4,25 @@ import chessnet.*
 import chessnet.search.LimitsType
 import chessnet.search.RootMove
 import chessnet.search.RootMoves
+import chessnet.search.search
 import java.util.ArrayDeque
 
 
-class Threads {
+class Thread {
     companion object {
-        fun startThinking(pos: Position, states: ArrayDeque<StateInfo>, limits: LimitsType, ponderMode: Boolean) {
+        var rootPos: Position = Position()
+        var rootState: StateInfo = StateInfo()
             val rootMoves: RootMoves = RootMoves()
+        fun startThinking(pos: Position, states: ArrayDeque<StateInfo>, limits: LimitsType, ponderMode: Boolean) {
+
+            rootPos.set( pos.fen(),pos.isChess960,rootState)
 
             for (m in MoveList(pos, GenType.LEGAL)) {
                 if (limits.searchMoves.isNotEmpty() && !limits.searchMoves.contains(m) || m ==null) continue
-                    println(m)
-
+                rootMoves.add(RootMove(m))
             }
-
-
-
-
-
-
+            search()
+            //
 
 
         }

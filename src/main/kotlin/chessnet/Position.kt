@@ -1,6 +1,5 @@
 package chessnet
 
-import chessnet.Bitboards.Companion.pretty
 import chessnet.PieceType.*
 import chessnet.Piece.*
 import chessnet.Color.*
@@ -26,6 +25,7 @@ var StateList: Deque<StateInfo> = ArrayDeque<StateInfo>()
  * @param si the state information
  */
 class Position {
+    var fen = ""
     // returns an ASCII representation of the position
     override fun toString(): String {
         var s = ""
@@ -107,6 +107,7 @@ class Position {
                       6) Fullmove number. The number of the full move. It starts at 1, and is
                          incremented after Black's move.
                    */
+        fen = fenStr
         var token: Char
         var col = 0
         var row = 7 // 7 because we start at the top of the board
@@ -201,7 +202,7 @@ class Position {
         ) + gamePlyRight
         //TODO: check if this gamePly number is correct
 
-        chess960 = isChess960
+        this.isChess960 = isChess960
 //        thisThread = Thread.currentThread()
         //thisThread = th
         setState(st)
@@ -211,7 +212,10 @@ class Position {
     }
 
 
-    fun fen() {}
+    fun fen(): String{
+        //TODO: implement real fen
+        return this.fen
+    }
 
     // Position representation
     fun pieces(pt: PieceType = ALL_PIECES): Bitboard {
@@ -576,7 +580,7 @@ class Position {
             }
             // In case of Chess960, verify if the Rook blocks some checks
             // For instance an enemy queen in SQ_A1 when castling rook is in SQ_B1.
-            return !chess960 || !(blockersForKing(us) and pieces(us.opposite()))
+            return !isChess960 || !(blockersForKing(us) and pieces(us.opposite()))
         }
         // If the moving piece is a king, check whether the destination square is
         // attacked by the opponent.
@@ -612,7 +616,7 @@ class Position {
     var gamePly: Int = 0
     var sideToMove: Color = WHITE
     var psq: Score = Score.SCORE_ZERO
-    var chess960: Boolean = false
+    var isChess960: Boolean = false
 
 
 }

@@ -18,6 +18,9 @@ class Move(val value: Int = 0) {
 //    var MOVE_NONE = Move(0)
 //     var MOVE_NULL = Move(65)
 
+    override fun toString(): String {
+        return "Move(value=$value)"
+    }
     companion object {
         val MOVE_NONE: Move = Move(0)
         val MOVE_NULL: Move = Move(65)

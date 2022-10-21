@@ -1,8 +1,12 @@
 package chessnet.search
 
+import chessnet.Color
 import chessnet.Move
 import chessnet.Position
+import chessnet.Uci
 import chessnet.Value.*
+import chessnet.thread.Thread
+import chessnet.thread.Thread.Companion.rootPos
 import java.util.*
 
 typealias RootMoves = Vector<RootMove>
@@ -35,4 +39,28 @@ class RootMove(val move: Move) {
             m.previousScore < previousScore
         }
     }
+}
+
+/**
+ * clear() resets search state to its initial value.
+ */
+fun clear(){
+    // TODO()
+}
+fun search() {
+
+    var us:Color = rootPos.sideToMove
+
+    //choose random move from rootMoves
+
+    var bestMove: Move = Thread.rootMoves.elementAt(Random().nextInt(Thread.rootMoves.size)).move
+
+    //print best move
+    println("bestmove ${Uci.move(bestMove, rootPos.isChess960)}")
+
+    return
+
+
+
+
 }

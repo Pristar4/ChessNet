@@ -4,7 +4,7 @@ package chessnet
 
 
 import chessnet.search.LimitsType
-import chessnet.thread.Threads
+import chessnet.thread.Thread
 import java.util.*
 
 class Uci {
@@ -81,7 +81,7 @@ class Uci {
 
             }
             val limits = LimitsType()
-            Threads.startThinking(pos,states,limits,ponderMode)
+            Thread.startThinking(pos, states, limits, ponderMode)
         }
 
         fun loop(argv: Array<String>) {
@@ -149,12 +149,46 @@ class Uci {
 
         }
 
+        fun square(s: Square): String {
+//            return std::string{ char('a' + file_of(s)), char('1' + rank_of(s)) }; in kotlin
+            return "${('a' + fileOf(s).value)}${('1' + rankOf(s).value)}"
+        }
+
         /** move() converts a Move to a string in coordinate notation (g1f3, a7a8q).
          * The only special case is castling where the e1g1 notation is printed in
          * standard chess mode and in e1h1 notation it is printed in Chess960 mode.
          * Internally, all castling moves are always encoded as 'king captures rook'.
          */
-        fun move(m: Move, chess960: Boolean) {
+        fun move(m: Move, chess960: Boolean): String {
+            /*Square from = from_sq(m);
+            Square to = to_sq(m);
+
+            if (m == MOVE_NONE)
+                return "(none)";
+
+            if (m == MOVE_NULL)
+                return "0000";
+
+            if (type_of(m) == CASTLING && !chess960)
+                to = make_square(to > from ? FILE_G : FILE_C, rank_of(from));
+
+            string move = UCI::square(from) + UCI::square(to);
+
+            if (type_of(m) == PROMOTION)
+                move += " pnbrqk"[promotion_type(m)];
+
+            return move; in kotlin*/
+            var from: Square = fromSq(m)
+            var to: Square = toSq(m)
+            if (m == Move.MOVE_NONE) return "(none)"
+            if (m == Move.MOVE_NULL) return "0000"
+            if (typeOf(m) == MoveType.CASTLING && !chess960) to =
+                makeSquare(if (to > from) File.FILE_G else File.FILE_C, rankOf(from))
+            var move = square(from) + square(to)
+
+            if (typeOf(m) == MoveType.PROMOTION) move += " pnbrqk"[promotionType(m).value]
+            return move
+
 
         }
 
